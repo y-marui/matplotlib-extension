@@ -6,7 +6,7 @@ authors = ["Yukihiro <12211343+y-marui@users.noreply.github.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.11"
 dill = "^0.3.8"
 fitz = "^0.0.1.dev2"
 matplotlib = "^3.8.2"
