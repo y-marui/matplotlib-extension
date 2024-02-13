@@ -1,2 +1,2 @@
-# matplotlib-extension
-An extention library for matplotlib
+# Matplotlib Extension
+An extension library for matplotlib
