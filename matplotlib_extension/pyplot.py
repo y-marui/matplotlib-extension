@@ -24,3 +24,20 @@ def savefig(fig:plt.figure, filename:str):
             file_annotation = page.add_file_annot(None, fp_dill, "fig.dill")
             
             doc.save(filename)
+
+
+def loadfig(filename:str)->plt.figure:
+    """Load the figure from a file of ".plt.pdf" which is PDF file including dill object.
+
+    Args:
+        filename (str): The name of the file to load the figure from.
+
+    Returns:
+        plt.figure: The figure object.
+    """
+    with open(filename, "rb") as fp:
+        doc = fitz.open(fp)
+        page = doc[0]
+        annot = page.first_annot
+        fig = dill.load(annot.file)
+        return fig
