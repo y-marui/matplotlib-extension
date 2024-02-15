@@ -38,6 +38,9 @@ def loadfig(filename:str)->plt.figure:
     with open(filename, "rb") as fp:
         doc = fitz.open(fp)
         page = doc[0]
-        annot = page.first_annot
-        fig = dill.load(annot.file)
+        for annot in page.annots():
+            if annot.info["content"] == 'fig.dill':
+                fig = dill.loads(annot.get_file())
+                break
+
         return fig
