@@ -5,6 +5,7 @@ import fitz
 from send2trash import send2trash
 from pypdf import PdfWriter
 from pathlib import Path
+import matplotlib
 
 def savefig(fig:plt.figure, filename:Path, mode: str = "x"):
     """Save the current figure to a file of ".plt.pdf" which is PDF file including dill object.
