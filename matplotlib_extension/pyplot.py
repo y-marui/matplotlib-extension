@@ -65,6 +65,42 @@ def loadfig(filename:str)->plt.figure:
                 if annot.info["content"] == 'fig.dill':
                     fig = dill.loads(annot.get_file())
                     figs.append(fig)
-                    break
             
         return figs
+
+def _adjust_locator_axis(get_lim:callable, set_lim:callable, axis: matplotlib.axis.Axis):
+    """Automatically adjust the locator of the axis.
+
+    Parameters
+    ----------
+    get_lim : callable
+        function of getting the limit of the axis
+    set_lim : callable
+        function of setting the limit of the axis
+    axis : matplotlib.axis.Axis
+        axis object to adjust the locator
+    """
+    min_val, max_val = get_lim()
+    unit = 10**np.floor(np.log10(max_val - min_val))
+    min_val = unit * np.floor(min_val/unit)
+    max_val = unit * np.ceil(max_val/unit)
+    set_lim(min_val, max_val)
+    
+    ticklocs = axis.get_ticklocs()
+    unit_major = ticklocs[1] - ticklocs[0]
+    unit_minor = min(ticklocs[1] - min_val, max_val - ticklocs[-2])
+    if unit_minor != unit_major:
+        axis.set_minor_locator(MultipleLocator(unit_minor))
+
+def adjust_locator(ax: matplotlib.axes.Axes):
+    """Automatically adjust the locator of the axes.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        axes object
+    """
+    _adjust_locator_axis(ax.get_xlim, ax.set_xlim, ax.xaxis)
+    _adjust_locator_axis(ax.get_ylim, ax.set_ylim, ax.yaxis)
+
+    
