@@ -4,6 +4,7 @@ import dill
 import fitz
 from send2trash import send2trash
 from pypdf import PdfWriter
+from pathlib import Path
 
 def savefig(fig:plt.figure, filename:Path, mode: str = "x"):
     """Save the current figure to a file of ".plt.pdf" which is PDF file including dill object.
@@ -16,19 +17,16 @@ def savefig(fig:plt.figure, filename:Path, mode: str = "x"):
     if isinstance(filename, str):
         filename = Path(filename) 
         
-    with PdfWriter() as merger:
+    with PdfWriter() as merger:   
+        if isinstance(filename, Path) and filename.exists():
+            if mode == "x":
+                raise FileExistsError(f"{filename}")
+            elif mode == "w":
+                send2trash(filename)
+            elif mode == "a":
+                merger.append(filename)
+
         with BytesIO() as fp_pdf:
-            merger = PdfWriter()
-            
-            if isinstance(filename, Path) and filename.exists():
-                if mode == "x":
-                    raise FileExistsError(f"{filename}")
-                elif mode == "w":
-                    send2trash(filename)
-                elif mode == "a":
-                    merger.append(filename)
-            
-            
             fig.savefig(fp_pdf, format="pdf")
             fp_pdf.seek(0)
     
@@ -37,16 +35,14 @@ def savefig(fig:plt.figure, filename:Path, mode: str = "x"):
                 fp_dill.seek(0)
     
                 doc = fitz.open("pdf", fp_pdf) 
-                
                 page = doc[0]
-                
-                file_annotation = page.add_file_annot(None, fp_dill, "fig.dill")
-                
+                page.add_file_annot(None, fp_dill, "fig.dill")
                 doc.save(fp_pdf)
+                fp_pdf.seek(0)
 
             merger.append(fp_pdf)
 
-            merger.write(filename)
+        merger.write(filename)
 
 
 def loadfig(filename:str)->plt.figure:
