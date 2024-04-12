@@ -6,6 +6,8 @@ from send2trash import send2trash
 from pypdf import PdfWriter
 from pathlib import Path
 import matplotlib
+import numpy as np
+from matplotlib.ticker import MultipleLocator
 
 def savefig(fig:plt.figure, filename:Path, mode: str = "x"):
     """Save the current figure to a file of ".plt.pdf" which is PDF file including dill object.
@@ -53,7 +55,7 @@ def loadfig(filename:str)->plt.figure:
         filename (str): The name of the file to load the figure from.
 
     Returns:
-        plt.figure: The figure object.
+        List[plt.figure]: The figure object.
     """
     if isinstance(filename, str):
         filename = Path(filename) 
