@@ -8,6 +8,7 @@ from pathlib import Path
 import matplotlib
 import numpy as np
 from matplotlib.ticker import MultipleLocator
+from typing import List
 
 def savefig(fig:plt.figure, filename:Path, mode: str = "x"):
     """Save the current figure to a file of ".plt.pdf" which is PDF file including dill object.
@@ -71,7 +72,7 @@ def loadfig(filename:str)->plt.figure:
             
         return figs
 
-def _adjust_locator_axis(get_lim:callable, set_lim:callable, axis: matplotlib.axis.Axis):
+def _adjust_locator_axis(get_lim:callable, set_lim:callable, axis: matplotlib.axis.Axis, unit: float):
     """Automatically adjust the locator of the axis.
 
     Parameters
@@ -84,7 +85,8 @@ def _adjust_locator_axis(get_lim:callable, set_lim:callable, axis: matplotlib.ax
         axis object to adjust the locator
     """
     min_val, max_val = get_lim()
-    unit = 10**np.floor(np.log10(max_val - min_val))
+    if unit is None:
+        unit = 10**np.floor(np.log10(max_val - min_val))
     min_val = unit * np.floor(min_val/unit)
     max_val = unit * np.ceil(max_val/unit)
     set_lim(min_val, max_val)
@@ -95,7 +97,7 @@ def _adjust_locator_axis(get_lim:callable, set_lim:callable, axis: matplotlib.ax
     if unit_minor != unit_major:
         axis.set_minor_locator(MultipleLocator(unit_minor))
 
-def adjust_locator(ax: matplotlib.axes.Axes):
+def adjust_locator(ax: matplotlib.axes.Axes, units:List[float] = (None, None)):
     """Automatically adjust the locator of the axes.
 
     Parameters
@@ -103,7 +105,6 @@ def adjust_locator(ax: matplotlib.axes.Axes):
     ax : matplotlib.axes.Axes
         axes object
     """
-    _adjust_locator_axis(ax.get_xlim, ax.set_xlim, ax.xaxis)
-    _adjust_locator_axis(ax.get_ylim, ax.set_ylim, ax.yaxis)
-
-    
+    unit_x, unit_y = units
+    _adjust_locator_axis(ax.get_xlim, ax.set_xlim, ax.xaxis, unit_x)
+    _adjust_locator_axis(ax.get_ylim, ax.set_ylim, ax.yaxis, unit_y)
