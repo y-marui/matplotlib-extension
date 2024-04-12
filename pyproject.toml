@@ -11,6 +11,8 @@ dill = "^0.3.8"
 fitz = "^0.0.1.dev2"
 matplotlib = "^3.8.2"
 pymupdf = "^1.23.21"
+send2trash = "^1.8.3"
+pypdf = "^4.2.0"
 
 
 [tool.poetry.group.dev.dependencies]
