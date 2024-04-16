@@ -626,8 +626,7 @@ figure.subplot.bottom: 0.2   # the bottom of the subplots of the figure
 ## ***************************************************************************
 ## * ERRORBAR PLOTS                                                          *
 ## ***************************************************************************
-#errorbar.capsize: 0  # length of end cap on error bars in pixels
-
+errorbar.capsize: 2  # length of end cap on error bars in pixels
 
 ## ***************************************************************************
 ## * HISTOGRAM PLOTS                                                         *

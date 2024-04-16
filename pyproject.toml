@@ -8,7 +8,6 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.11"
 dill = "^0.3.8"
-fitz = "^0.0.1.dev2"
 matplotlib = "^3.8.2"
 pymupdf = "^1.23.21"
 send2trash = "^1.8.3"
