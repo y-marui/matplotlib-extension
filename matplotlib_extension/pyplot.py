@@ -10,7 +10,7 @@ import numpy as np
 from matplotlib.ticker import MultipleLocator
 from typing import List
 
-def savefig(fig:plt.figure, filename:Path, mode: str = "x"):
+def savefig(fig:plt.figure, filename:Path, mode: str = "x", title:str="Figure"):
     """Save the current figure to a file of ".plt.pdf" which is PDF file including dill object.
 
     Args:
@@ -39,12 +39,13 @@ def savefig(fig:plt.figure, filename:Path, mode: str = "x"):
                 fp_dill.seek(0)
     
                 doc = fitz.open("pdf", fp_pdf) 
-                page = doc[0]
+                page:fitz.Page = doc[0]
                 page.add_file_annot(None, fp_dill, "fig.dill")
                 doc.save(fp_pdf)
                 fp_pdf.seek(0)
 
             merger.append(fp_pdf)
+            merger.add_outline_item(title, merger.get_num_pages() - 1)
 
         merger.write(filename)
 
