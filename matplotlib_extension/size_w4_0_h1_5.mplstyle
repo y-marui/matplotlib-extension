@@ -1,0 +1,7 @@
+## change figure size of article.mplstyle
+## use as plt.style.use(['matplotlib_extension.article', 'matplotlib_extension.size_w4_0_h1_5'])
+
+figure.figsize:     2, 1.5  # figure size in inches
+
+figure.subplot.left:   0.275  # the left side of the subplots of the figure
+figure.subplot.bottom: 0.3   # the bottom of the subplots of the figure
