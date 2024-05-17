@@ -562,7 +562,7 @@ ytick.direction:     in     # direction: {in, out, inout}
 #figure.labelweight: normal    # weight of the figure label
 figure.figsize:     3.2, 2.4  # figure size in inches
 #figure.dpi:         100       # figure dots per inch
-#figure.facecolor:   white     # figure face color
+figure.facecolor:   none     # figure face color
 #figure.edgecolor:   white     # figure edge color
 #figure.frameon:     True      # enable figure frame
 #figure.max_open_warning: 20   # The maximum number of figures to open through
@@ -696,7 +696,7 @@ errorbar.capsize: 2  # length of end cap on error bars in pixels
                                 # interactive saves, unless set to the empty string (i.e.
                                 # the current directory); use '.' to start at the current
                                 # directory but update after interactive saves
-savefig.transparent: True     # whether figures are saved with a transparent
+savefig.transparent: False     # whether figures are saved with a transparent
                                 # background by default
 #savefig.orientation: portrait  # orientation of saved figure, for PostScript output only
 
