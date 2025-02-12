@@ -1,0 +1,12 @@
+## change thema to dark of article.mplstyle
+## use as plt.style.use(['matplotlib_extension.article', 'matplotlib_extension.small'])
+
+
+font.size: 15
+figure.subplot.top: 0.93
+figure.subplot.bottom: 0.27
+figure.subplot.left: 0.27
+figure.subplot.right: 0.93
+legend.fontsize: 10
+xtick.labelsize: 12.5
+ytick.labelsize: 12.5
