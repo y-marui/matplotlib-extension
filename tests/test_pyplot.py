@@ -1,43 +1,55 @@
-from matplotlib_extension.pyplot import savefig
+import pytest
+import matplotlib.pyplot as plt
+import numpy as np
+from pathlib import Path
+from matplotlib_extension import pyplot
+import tempfile
+import os
 
-def test_savefig():
-    pass
+def test_save_and_loadfig(tmp_path):
+    # Create a simple figure
+    fig, ax = plt.subplots()
+    x = np.linspace(0, 10, 100)
+    y = np.sin(x)
+    ax.plot(x, y)
+    filename = tmp_path / "test.plt.pdf"
 
-# import unittest
-# from unittest.mock import patch, mock_open
-# from matplotlib_extension.pyplot import savefig
-# import fitz
-# import dill
-# import matplotlib.pyplot as plt
-# from io import BytesIO
+    # Save the figure
+    pyplot.savefig(fig, filename)
 
-# class TestSaveFig(unittest.TestCase):
-#     @patch("matplotlib.pyplot.savefig")
-#     @patch("dill.dump")
-#     @patch("fitz.open")
-#     def test_savefig(self, mock_fitz_open, mock_dill_dump, mock_plt_savefig):
-#         # モックオブジェクトを作成
-#         mock_doc = mock_fitz_open.return_value
-#         mock_page = mock_doc.__getitem__.return_value
-#         mock_file_annot = mock_page.add_file_annot
+    # Load the figure
+    figs = pyplot.loadfig(filename)
+    assert isinstance(figs, list)
+    assert len(figs) == 1
+    assert hasattr(figs[0], "axes")
 
-#         # テスト対象の関数を呼び出す
-#         savefig("test_filename")
+def test_savefig_file_exists(tmp_path):
+    fig, ax = plt.subplots()
+    filename = tmp_path / "test_exists.plt.pdf"
+    pyplot.savefig(fig, filename)
+    with pytest.raises(FileExistsError):
+        pyplot.savefig(fig, filename, mode="x")
 
-#         # matplotlib.pyplot.savefigが正しく呼び出されたことを確認
-#         mock_plt_savefig.assert_called_once_with(mock.ANY, format="pdf")
+def test_savefig_overwrite(tmp_path):
+    fig, ax = plt.subplots()
+    filename = tmp_path / "test_overwrite.plt.pdf"
+    pyplot.savefig(fig, filename)
+    # Overwrite should not raise
+    pyplot.savefig(fig, filename, mode="w")
 
-#         # dill.dumpが正しく呼び出されたことを確認
-#         mock_dill_dump.assert_called_once_with(mock.ANY, mock.ANY)
+def test_savefig_append(tmp_path):
+    fig, ax = plt.subplots()
+    filename = tmp_path / "test_append.plt.pdf"
+    pyplot.savefig(fig, filename)
+    # Append should not raise
+    pyplot.savefig(fig, filename, mode="a")
 
-#         # fitz.openが正しく呼び出されたことを確認
-#         mock_fitz_open.assert_called_once_with("pdf", mock.ANY)
-
-#         # add_file_annotが正しく呼び出されたことを確認
-#         mock_file_annot.assert_called_once_with(None, mock.ANY, "fig.dill")
-
-#         # doc.saveが正しく呼び出されたことを確認
-#         mock_doc.save.assert_called_once_with("test_filename")
-
-# if __name__ == "__main__":
-#     unittest.main()
+def test_adjust_locator():
+    fig, ax = plt.subplots()
+    x = np.linspace(0, 10, 100)
+    y = np.cos(x)
+    ax.plot(x, y)
+    pyplot.adjust_locator(ax)
+    # Check that major and minor locators are set
+    assert hasattr(ax.xaxis, "get_major_locator")
+    assert hasattr(ax.xaxis, "get_minor_locator")
