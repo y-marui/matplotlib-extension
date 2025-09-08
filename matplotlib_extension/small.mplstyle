@@ -8,5 +8,6 @@ figure.subplot.bottom: 0.27
 figure.subplot.left: 0.27
 figure.subplot.right: 0.93
 legend.fontsize: 10
+legend.title_fontsize: 10
 xtick.labelsize: 12.5
 ytick.labelsize: 12.5
