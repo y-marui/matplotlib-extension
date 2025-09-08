@@ -1,0 +1,6 @@
+## widen right area to show ledgend in article.mplstyle
+## use as plt.style.use(['matplotlib_extension.article', 'matplotlib_extension.small', 'matplotlib_extension.legend_right_small'])
+
+figure.figsize: 5, 2.4
+figure.subplot.left: 0.1728
+figure.subplot.right: 0.5952
