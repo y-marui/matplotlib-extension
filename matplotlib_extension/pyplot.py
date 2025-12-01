@@ -76,7 +76,7 @@ def loadfig(filename: str) -> plt.figure:
 
 
 def _adjust_locator_axis(
-    get_lim: callable, set_lim: callable, axis: matplotlib.axis.Axis, unit: float
+    get_lim: callable, set_lim: callable, axis: matplotlib.axis.Axis, unit: float, subunit: float
 ):
     """Automatically adjust the locator of the axis.
 
@@ -98,12 +98,15 @@ def _adjust_locator_axis(
 
     ticklocs = axis.get_ticklocs()
     unit_major = ticklocs[1] - ticklocs[0]
-    unit_minor = min(ticklocs[1] - min_val, max_val - ticklocs[-2])
+    if subunit is None:
+        unit_minor = min(ticklocs[1] - min_val, max_val - ticklocs[-2])
+    else:
+        unit_minor = subunit
     if unit_minor != unit_major:
         axis.set_minor_locator(MultipleLocator(unit_minor))
 
 
-def adjust_locator(ax: matplotlib.axes.Axes, units: List[float] = (None, None)):
+def adjust_locator(ax: matplotlib.axes.Axes, units: List[float] = (None, None), subunits: List[float] = (None, None)):
     """Automatically adjust the locator of the axes.
 
     Parameters
@@ -112,5 +115,6 @@ def adjust_locator(ax: matplotlib.axes.Axes, units: List[float] = (None, None)):
         axes object
     """
     unit_x, unit_y = units
-    _adjust_locator_axis(ax.get_xlim, ax.set_xlim, ax.xaxis, unit_x)
-    _adjust_locator_axis(ax.get_ylim, ax.set_ylim, ax.yaxis, unit_y)
+    subunit_x, subunit_y = subunits
+    _adjust_locator_axis(ax.get_xlim, ax.set_xlim, ax.xaxis, unit_x, subunit_x)
+    _adjust_locator_axis(ax.get_ylim, ax.set_ylim, ax.yaxis, unit_y, subunit_y)
