@@ -13,6 +13,8 @@ figure.subplot.left:   0.25  # the left side of the subplots of the figure
 figure.subplot.right:  0.95    # the right side of the subplots of the figure
 figure.subplot.bottom: 0.2   # the bottom of the subplots of the figure
 
+mathtext.fontset:   cm
+
 errorbar.capsize: 3.5  # length of end cap on error bars in pixels
 
 savefig.transparent: False     # whether figures are saved with a transparent
