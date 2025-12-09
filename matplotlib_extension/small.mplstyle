@@ -1,13 +1,43 @@
-## change thema to dark of article.mplstyle
+## change thema to small of article.mplstyle
 ## use as plt.style.use(['matplotlib_extension.article', 'matplotlib_extension.small'])
 
+#### MATPLOTLIBRC FORMAT
 
-font.size: 15
-figure.subplot.top: 0.93
-figure.subplot.bottom: 0.27
-figure.subplot.left: 0.27
-figure.subplot.right: 0.93
-legend.fontsize: 10
-legend.title_fontsize: 10
-xtick.labelsize: 12.5
-ytick.labelsize: 12.5
+## Matplotlib configuration are currently divided into following parts:
+##     - BACKENDS
+##     - LINES
+##     - PATCHES
+##     - HATCHES
+##     - BOXPLOT
+##     - FONT
+##     - TEXT
+##     - LaTeX
+##     - AXES
+##     - DATES
+##     - TICKS
+##     - GRIDS
+##     - LEGEND
+##     - FIGURE
+##     - IMAGES
+##     - CONTOUR PLOTS
+##     - ERRORBAR PLOTS
+##     - HISTOGRAM PLOTS
+##     - SCATTER PLOTS
+##     - AGG RENDERING
+##     - PATHS
+##     - SAVING FIGURES
+##     - INTERACTIVE KEYMAPS
+##     - ANIMATION
+
+font.size:    15 # 10.0
+
+#xtick.labelsize:     12.5 # medium  # font size of the tick labels
+#ytick.labelsize:     12.5 # medium  # font size of the tick labels
+
+legend.fontsize:      15 # medium
+legend.title_fontsize: 15 # None    # None sets to the same as the default axes.
+
+figure.subplot.left:   0.27 # 0.125  # the left side of the subplots of the figure
+figure.subplot.right:  0.93 # 0.9    # the right side of the subplots of the figure
+figure.subplot.bottom: 0.27 # 0.11   # the bottom of the subplots of the figure
+figure.subplot.top:    0.93 # 0.88   # the top of the subplots of the figure
