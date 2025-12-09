@@ -1,27 +1,74 @@
-xtick.top:           True   # draw ticks on the top side
-xtick.direction:     in     # direction: {in, out, inout}
+## change thema for articale
+## use as plt.style.use(['matplotlib_extension.article'])
 
-ytick.right:         True   # draw ticks on the right side
-ytick.direction:     in     # direction: {in, out, inout}
+#### MATPLOTLIBRC FORMAT
 
+## Matplotlib configuration are currently divided into following parts:
+##     - BACKENDS
+##     - LINES
+##     - PATCHES
+##     - HATCHES
+##     - BOXPLOT
+##     - FONT
+##     - TEXT
+##     - LaTeX
+##     - AXES
+##     - DATES
+##     - TICKS
+##     - GRIDS
+##     - LEGEND
+##     - FIGURE
+##     - IMAGES
+##     - CONTOUR PLOTS
+##     - ERRORBAR PLOTS
+##     - HISTOGRAM PLOTS
+##     - SCATTER PLOTS
+##     - AGG RENDERING
+##     - PATHS
+##     - SAVING FIGURES
+##     - INTERACTIVE KEYMAPS
+##     - ANIMATION
 
-figure.figsize:     3.2, 2.4  # figure size in inches
-figure.dpi:         200       # figure dots per inch
-figure.facecolor:   none     # figure face color
+## https://github.com/matplotlib/matplotlib/blob/main/lib/matplotlib/mpl-data/matplotlibrc
 
-figure.subplot.left:   0.25  # the left side of the subplots of the figure
-figure.subplot.right:  0.95    # the right side of the subplots of the figure
-figure.subplot.bottom: 0.2   # the bottom of the subplots of the figure
+mathtext.fontset: custom # dejavusans  # Should be 'dejavusans' (default),
+                               # 'dejavuserif', 'cm' (Computer Modern), 'stix',
+                               # 'stixsans' or 'custom'
+mathtext.bf:  Times New Roman:bold # sans:bold
+mathtext.bfit: Times New Roman:italic:bold # sans:italic:bold
+mathtext.it:  Times New Roman:italic # sans:italic
+mathtext.rm:  Times New Roman # sans
+mathtext.fallback: cm  # Select fallback font from ['cm' (Computer Modern), 'stix'
+                        # 'stixsans'] when a symbol cannot be found in one of the
+                        # custom math fonts. Select 'None' to not perform fallback
+                        # and replace the missing character by a dummy symbol.
+mathtext.default: it  # The default font to use for math.
+                       # Can be any of the LaTeX font names, including
+                       # the special name "regular" for the same font
+                       # used in regular text.
 
-mathtext.fontset:    custom
-mathtext.default:    it
-mathtext.it:         Times New Roman:italic
-mathtext.rm:         Times New Roman
-mathtext.bf:         Times New Roman:bold
+axes.labelcolor:    black
 
-errorbar.capsize: 3.5  # length of end cap on error bars in pixels
+xtick.top:           True # False   # draw ticks on the top side
+xtick.bottom:        True    # draw ticks on the bottom side
+xtick.direction:     in # out     # direction: {in, out, inout}
+
+ytick.left:          True    # draw ticks on the left side
+ytick.right:         True # False   # draw ticks on the right side
+ytick.direction:     in # out     # direction: {in, out, inout}
+
+legend.borderpad:     0.2 # 0.4  # border whitespace
+
+figure.figsize:     3.2, 2.4 # 6.4, 4.8  # figure size in inches
+figure.dpi:         200 # 100       # figure dots per inch
+figure.facecolor:   none # white     # figure face color
+
+figure.subplot.left:   0.25 # 0.125  # the left side of the subplots of the figure
+figure.subplot.right:  0.95 # 0.9    # the right side of the subplots of the figure
+figure.subplot.bottom: 0.2 # 0.11   # the bottom of the subplots of the figure
+figure.subplot.top:    0.88   # the top of the subplots of the figure
+
+errorbar.capsize: 3.5 # 0  # length of end cap on error bars in pixels
 
 savefig.transparent: False     # whether figures are saved with a transparent
                                 # background by default
-
-axes.labelcolor:    black
