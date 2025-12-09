@@ -60,7 +60,7 @@ ytick.direction:     in # out     # direction: {in, out, inout}
 
 legend.borderpad:     0.2 # 0.4  # border whitespace
 legend.labelspacing:  0.1 # 0.5  # the vertical space between the legend entries
-legend.borderaxespad: 0.3 # 0.5  # the border between the axes and legend edge
+legend.borderaxespad: 0.4 # 0.5  # the border between the axes and legend edge
 
 figure.figsize:     3.2, 2.4 # 6.4, 4.8  # figure size in inches
 figure.dpi:         200 # 100       # figure dots per inch
