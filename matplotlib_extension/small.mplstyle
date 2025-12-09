@@ -31,8 +31,8 @@
 
 font.size:    15 # 10.0
 
-#xtick.labelsize:     12.5 # medium  # font size of the tick labels
-#ytick.labelsize:     12.5 # medium  # font size of the tick labels
+xtick.labelsize:     12.5 # medium  # font size of the tick labels
+ytick.labelsize:     12.5 # medium  # font size of the tick labels
 
 legend.fontsize:      15 # medium
 legend.title_fontsize: 15 # None    # None sets to the same as the default axes.
