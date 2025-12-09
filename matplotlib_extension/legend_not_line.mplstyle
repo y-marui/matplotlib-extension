@@ -31,5 +31,5 @@
 
 ## https://github.com/matplotlib/matplotlib/blob/main/lib/matplotlib/mpl-data/matplotlibrc
 
-#legend.handlelength:  0.75 # 2.0  # the length of the legend lines
-#legend.handletextpad: 0.2 # 0.8  # the space between the legend line and legend text
+legend.handlelength:  0.75 # 2.0  # the length of the legend lines
+legend.handletextpad: 0.2 # 0.8  # the space between the legend line and legend text
