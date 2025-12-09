@@ -1,0 +1,35 @@
+## change thema to legend not containing line of article.mplstyle
+## use as plt.style.use(['matplotlib_extension.article', 'matplotlib_extension.legend_not_line'])
+
+#### MATPLOTLIBRC FORMAT
+
+## Matplotlib configuration are currently divided into following parts:
+##     - BACKENDS
+##     - LINES
+##     - PATCHES
+##     - HATCHES
+##     - BOXPLOT
+##     - FONT
+##     - TEXT
+##     - LaTeX
+##     - AXES
+##     - DATES
+##     - TICKS
+##     - GRIDS
+##     - LEGEND
+##     - FIGURE
+##     - IMAGES
+##     - CONTOUR PLOTS
+##     - ERRORBAR PLOTS
+##     - HISTOGRAM PLOTS
+##     - SCATTER PLOTS
+##     - AGG RENDERING
+##     - PATHS
+##     - SAVING FIGURES
+##     - INTERACTIVE KEYMAPS
+##     - ANIMATION
+
+## https://github.com/matplotlib/matplotlib/blob/main/lib/matplotlib/mpl-data/matplotlibrc
+
+#legend.handlelength:  0.75 # 2.0  # the length of the legend lines
+#legend.handletextpad: 0.2 # 0.8  # the space between the legend line and legend text
