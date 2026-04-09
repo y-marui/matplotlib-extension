@@ -49,7 +49,11 @@ git fetch dev-charter
 git subtree add --prefix=docs/dev-charter dev-charter main --squash
 ```
 
-After installing, follow the [Install Checklist](INSTALL_CHECKLIST.md).
+After installing, paste the following prompt into your AI tool:
+
+```
+Run docs/dev-charter/INSTALL_CHECKLIST.md
+```
 
 ## Update
 
@@ -60,7 +64,11 @@ git remote add dev-charter https://github.com/y-marui/dev-charter
 git subtree pull --prefix=docs/dev-charter dev-charter main --squash
 ```
 
-After updating, follow the [Update Checklist](UPDATE_CHECKLIST.md).
+After updating, paste the following prompt into your AI tool:
+
+```
+Run docs/dev-charter/UPDATE_CHECKLIST.md
+```
 
 ## Makefile helper
 
