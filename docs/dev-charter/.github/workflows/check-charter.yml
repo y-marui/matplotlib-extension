@@ -2,7 +2,7 @@
 #
 # For setup instructions, see "Version Check (CI)" in README.md.
 
-name: check-charter
+name: Dev Charter
 
 on:
   workflow_call:
