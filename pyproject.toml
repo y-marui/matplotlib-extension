@@ -1,23 +1,45 @@
-[tool.poetry]
+[project]
 name = "matplotlib-extension"
 version = "0.1.0"
-description = ""
-authors = ["Yukihiro <12211343+y-marui@users.noreply.github.com>"]
+description = "An extension library for matplotlib"
+authors = [
+    {name = "Yukihiro", email = "12211343+y-marui@users.noreply.github.com"}
+]
 readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.11"
+dependencies = [
+    "dill>=0.3.8",
+    "matplotlib>=3.8.2",
+    "pymupdf>=1.23.21",
+    "send2trash>=1.8.3",
+    "pypdf>=4.2.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-dill = "^0.3.8"
-matplotlib = "^3.8.2"
-pymupdf = "^1.23.21"
-send2trash = "^1.8.3"
-pypdf = "^4.2.0"
-
-
-[tool.poetry.group.dev.dependencies]
-ipykernel = "^6.29.2"
-pytest = "^8.0.0"
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.2",
+    "mypy>=1.0",
+    "pytest>=8.0.0",
+    "ruff>=0.4.0",
+]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

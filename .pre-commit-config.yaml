@@ -1,0 +1,88 @@
+exclude: |
+  (?x)^(
+    node_modules/|
+    vendor/|
+    \.git/|
+    dist/|
+    build/|
+    __pycache__/|
+    .*\.min\.js$|
+    .*\.min\.css$|
+    poetry\.lock$|
+    uv\.lock$
+  )
+
+repos:
+  # ----------------------------------------------------------------
+  # Security (required — verified by global git hook)
+  # ----------------------------------------------------------------
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks
+        args: ["--config=.gitleaks.toml"]
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      # Required: SSH private key detection
+      - id: detect-private-key
+
+      # Required: block large files
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-executables-have-shebangs
+      - id: check-case-conflict
+
+  # Required: .env file check (hook id contains "detect-dotenv")
+  - repo: local
+    hooks:
+      - id: detect-dotenv
+        name: Block .env files
+        language: fail
+        entry: '.env ファイルはコミット禁止。ダミー値のみの .env.example を使うこと。'
+        files: '(^|/)\.env(\.[^.]+)?$'
+        exclude: '(^|/)\.env\.(example|sample|template)$'
+
+  # ----------------------------------------------------------------
+  # Hardcoded local absolute paths
+  # ----------------------------------------------------------------
+  - repo: local
+    hooks:
+      - id: no-hardcoded-local-paths
+        name: Block hardcoded local absolute paths
+        language: pygrep
+        entry: '(/Users/[A-Za-z0-9_.-]+/|/home/[A-Za-z0-9_.-]+/|C:\\Users\\)'
+        types_or: [text]
+        exclude: |
+          (?x)(
+            \.md$|
+            docs/|
+            \.github/|
+            \.gitleaks\.toml$|
+            \.pre-commit-config\.yaml$
+          )
+
+  # ----------------------------------------------------------------
+  # Python
+  # ----------------------------------------------------------------
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.5.0
+    hooks:
+      - id: ruff
+      - id: ruff-format
+
+  # ----------------------------------------------------------------
+  # Shell scripts
+  # ----------------------------------------------------------------
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        args: ["--severity=warning"]
+        exclude: '\.zsh$'
