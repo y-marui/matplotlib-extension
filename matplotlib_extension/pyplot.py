@@ -1,14 +1,14 @@
-import matplotlib.pyplot as plt
-from io import BytesIO, StringIO
+from io import BytesIO
+from pathlib import Path
+
 import dill
 import fitz
-from send2trash import send2trash
-from pypdf import PdfWriter
-from pathlib import Path
 import matplotlib
+import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.ticker import MultipleLocator
-from typing import List
+from pypdf import PdfWriter
+from send2trash import send2trash
 
 
 def savefig(fig: plt.figure, filename: Path, mode: str = "x", title: str = "Figure"):
@@ -75,9 +75,7 @@ def loadfig(filename: str) -> plt.figure:
         return figs
 
 
-def _adjust_locator_axis(
-    get_lim: callable, set_lim: callable, axis: matplotlib.axis.Axis, unit: float, subunit: float
-):
+def _adjust_locator_axis(get_lim: callable, set_lim: callable, axis: matplotlib.axis.Axis, unit: float, subunit: float):
     """Automatically adjust the locator of the axis.
 
     Parameters
@@ -106,7 +104,7 @@ def _adjust_locator_axis(
         axis.set_minor_locator(MultipleLocator(unit_minor))
 
 
-def adjust_locator(ax: matplotlib.axes.Axes, units: List[float] = (None, None), subunits: List[float] = (None, None)):
+def adjust_locator(ax: matplotlib.axes.Axes, units: list[float] = (None, None), subunits: list[float] = (None, None)):
     """Automatically adjust the locator of the axes.
 
     Parameters
