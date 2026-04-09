@@ -1,17 +1,19 @@
+from collections.abc import Callable
 from io import BytesIO
 from pathlib import Path
+from typing import Any
 
 import dill
 import fitz
 import matplotlib
-import matplotlib.pyplot as plt
+import matplotlib.figure
 import numpy as np
 from matplotlib.ticker import MultipleLocator
 from pypdf import PdfWriter
 from send2trash import send2trash
 
 
-def savefig(fig: plt.figure, filename: Path, mode: str = "x", title: str = "Figure"):
+def savefig(fig: matplotlib.figure.Figure, filename: Path | str, mode: str = "x", title: str = "Figure") -> None:
     """Save the current figure to a file of ".plt.pdf" which is PDF file including dill object.
 
     Args:
@@ -23,7 +25,7 @@ def savefig(fig: plt.figure, filename: Path, mode: str = "x", title: str = "Figu
         filename = Path(filename)
 
     with PdfWriter() as merger:
-        if isinstance(filename, Path) and filename.exists():
+        if filename.exists():
             if mode == "x":
                 raise FileExistsError(f"{filename}")
             elif mode == "w":
@@ -51,14 +53,14 @@ def savefig(fig: plt.figure, filename: Path, mode: str = "x", title: str = "Figu
         merger.write(filename)
 
 
-def loadfig(filename: str) -> plt.figure:
+def loadfig(filename: Path | str) -> list[matplotlib.figure.Figure]:
     """Load the figure from a file of ".plt.pdf" which is PDF file including dill object.
 
     Args:
         filename (str): The name of the file to load the figure from.
 
     Returns:
-        List[plt.figure]: The figure object.
+        list[matplotlib.figure.Figure]: The figure objects.
     """
     if isinstance(filename, str):
         filename = Path(filename)
@@ -75,7 +77,13 @@ def loadfig(filename: str) -> plt.figure:
         return figs
 
 
-def _adjust_locator_axis(get_lim: callable, set_lim: callable, axis: matplotlib.axis.Axis, unit: float, subunit: float):
+def _adjust_locator_axis(
+    get_lim: Callable[[], tuple[float, float]],
+    set_lim: Callable[..., Any],
+    axis: matplotlib.axis.Axis,
+    unit: float | None,
+    subunit: float | None,
+) -> None:
     """Automatically adjust the locator of the axis.
 
     Parameters
@@ -104,7 +112,11 @@ def _adjust_locator_axis(get_lim: callable, set_lim: callable, axis: matplotlib.
         axis.set_minor_locator(MultipleLocator(unit_minor))
 
 
-def adjust_locator(ax: matplotlib.axes.Axes, units: list[float] = (None, None), subunits: list[float] = (None, None)):
+def adjust_locator(
+    ax: matplotlib.axes.Axes,
+    units: tuple[float | None, float | None] = (None, None),
+    subunits: tuple[float | None, float | None] = (None, None),
+) -> None:
     """Automatically adjust the locator of the axes.
 
     Parameters

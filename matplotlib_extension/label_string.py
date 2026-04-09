@@ -1,12 +1,12 @@
 import re
 
-patterns: list[tuple[str, str]] = (
-    [r"para", r"$\\parallel$"],
-    [r"perp", r"$\\perp$"],
-    [r"alpha", r"$\\alpha$"],
-    [r"beta", r"$\\beta$"],
-    [r"gamma", r"$\\gamma$"],
-)
+patterns: list[tuple[str, str]] = [
+    (r"para", r"$\\parallel$"),
+    (r"perp", r"$\\perp$"),
+    (r"alpha", r"$\\alpha$"),
+    (r"beta", r"$\\beta$"),
+    (r"gamma", r"$\\gamma$"),
+]
 
 
 class LabelString:
