@@ -6,7 +6,7 @@ on:
       - ".github/workflows/dev-charter-check.yml"
       - "docs/dev-charter/VERSION"
   schedule:
-    - cron: "40 3 * * 1"
+    - cron: "48 0 * * 6"  # Every Sat 00:48 UTC
   workflow_dispatch:
 
 jobs:
