@@ -15,6 +15,8 @@ matplotlib の拡張ライブラリ。図を dill オブジェクト付きの PD
 
 ## Applied Charter Principles
 
+憲章参照: docs/dev-charter/CHARTER_INDEX.md でトピックを特定してから該当ファイルのみ読む
+
 - **コミット形式:** Conventional Commits（feat/fix/chore/docs/refactor）
 - **セキュリティ:** pre-commit（gitleaks, detect-private-key, detect-dotenv）CI で強制
 - **コードの原則:** YAGNI・DRY（3回目で検討）・変更範囲最小限
