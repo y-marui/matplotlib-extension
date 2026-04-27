@@ -23,6 +23,11 @@ matplotlib の拡張ライブラリ。図を dill オブジェクト付きの PD
 - **コメント:** 「なぜそうするか」のみ。コードから自明な処理には書かない。
 - **OSS 言語ポリシー:** 公開面（README・docstring・コミット）は英語、内部コメントは日本語 OK
 
+## Document Sync Rule
+
+仕様・ルール・構成に変更が生じたとき、変更と同じ作業内で関連ドキュメントを更新する。
+対象は docs/ 内のファイルに限らず、AI_CONTEXT.md・README.md 等のルートファイルも含む。
+
 ## Project-Specific Rules
 
 - 依存管理は uv のみ（poetry は使わない）
