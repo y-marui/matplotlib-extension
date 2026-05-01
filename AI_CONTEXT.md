@@ -22,6 +22,7 @@ matplotlib の拡張ライブラリ。図を dill オブジェクト付きの PD
 - **コードの原則:** YAGNI・DRY（3回目で検討）・変更範囲最小限
 - **コメント:** 「なぜそうするか」のみ。コードから自明な処理には書かない。
 - **OSS 言語ポリシー:** 公開面（README・docstring・コミット）は英語、内部コメントは日本語 OK
+- **dev-charter の変更:** `docs/dev-charter/` 配下のファイルを直接編集しない。変更が必要な場合は dev-charter リポジトリに Issue を立て、`git subtree pull` でアップデートを取り込む
 
 ## Document Sync Rule
 
