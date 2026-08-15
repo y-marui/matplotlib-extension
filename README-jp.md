@@ -23,7 +23,7 @@ uv sync
 
 ## Usage
 
-### 図の保存と読み込み
+### Save and Load Figures
 
 matplotlib の図を `.plt.pdf` ファイルとして保存する。PDF に dill オブジェクトを埋め込むことで、図を完全な状態で復元できる。
 
@@ -55,7 +55,7 @@ ax.set_xlabel(repr(LabelString("alpha vs para")))
 
 対応キーワード: `alpha`, `beta`, `gamma`, `para`, `perp`
 
-### 軸ロケーターの自動調整
+### Adjust Locator
 
 データ範囲に合わせて主・補助目盛りを自動調整する。
 
