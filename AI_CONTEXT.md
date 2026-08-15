@@ -18,7 +18,7 @@ matplotlib の拡張ライブラリ。図を dill オブジェクト付きの PD
 憲章参照: docs/dev-charter/CHARTER_INDEX.md でトピックを特定してから該当ファイルのみ読む
 
 - **コミット形式:** Conventional Commits（feat/fix/chore/docs/refactor）
-- **セキュリティ:** pre-commit（gitleaks, detect-private-key, detect-dotenv）CI で強制
+- **セキュリティ:** pre-commit（gitleaks, detect-private-key, detect-dotenv, check-local-charter-version, check-markdown-heading-language）CI で強制
 - **コードの原則:** YAGNI・DRY（3回目で検討）・変更範囲最小限
 - **コメント:** 「なぜそうするか」のみ。コードから自明な処理には書かない。
 - **OSS 言語ポリシー:** 公開面（README・docstring・コミット）は英語、内部コメントは日本語 OK
@@ -36,8 +36,9 @@ matplotlib の拡張ライブラリ。図を dill オブジェクト付きの PD
 
 ## AI Tool Assignments
 
-- **Claude Code:** 機能実装・リファクタリング・CI 設計
-- **GitHub Copilot:** 補完・細かな修正
+- **使用ツール**：Claude Code、GitHub Copilot、Gemini CLI
+- **標準担当の正本**：`docs/dev-charter/AI_COLLABORATION_RULES.md` の「AI Tool Responsibilities」と「Rules for Multi-AI Usage」
+- **プロジェクト固有の上書き**：なし
 
 ## Prohibited Actions
 
