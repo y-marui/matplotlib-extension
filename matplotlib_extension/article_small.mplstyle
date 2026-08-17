@@ -1,6 +1,10 @@
-## change thema for articale
-## use as plt.style.use(['matplotlib_extension.article'])
-## combined with small.mplstyle: plt.style.use('matplotlib_extension.article_small')
+## combined theme: article.mplstyle + small.mplstyle
+## use as plt.style.use('matplotlib_extension.article_small')
+## equivalent to plt.style.use(['matplotlib_extension.article', 'matplotlib_extension.small'])
+##
+## NOTE: this file merges article.mplstyle and small.mplstyle (small's values win on
+## keys defined in both, matching that usage order). If either of those files changes,
+## update this file to match — tests/test_style.py asserts the two stay equivalent.
 
 #### MATPLOTLIBRC FORMAT
 
@@ -48,29 +52,35 @@ mathtext.default: it  # The default font to use for math.
                        # the special name "regular" for the same font
                        # used in regular text.
 
+font.size:    15 # 10.0  # from small.mplstyle
+
 axes.labelcolor:    black
 
 xtick.top:           True # False   # draw ticks on the top side
 xtick.bottom:        True    # draw ticks on the bottom side
 xtick.direction:     in # out     # direction: {in, out, inout}
+xtick.labelsize:     12.5 # medium  # from small.mplstyle
 
 ytick.left:          True    # draw ticks on the left side
 ytick.right:         True # False   # draw ticks on the right side
 ytick.direction:     in # out     # direction: {in, out, inout}
+ytick.labelsize:     12.5 # medium  # from small.mplstyle
 
 
 legend.borderpad:     0.2 # 0.4  # border whitespace
 legend.labelspacing:  0.1 # 0.5  # the vertical space between the legend entries
 legend.borderaxespad: 0.4 # 0.5  # the border between the axes and legend edge
+legend.fontsize:      15 # medium  # from small.mplstyle
+legend.title_fontsize: 15 # None    # from small.mplstyle
 
 figure.figsize:     3.2, 2.4 # 6.4, 4.8  # figure size in inches
 figure.dpi:         200 # 100       # figure dots per inch
 figure.facecolor:   none # white     # figure face color
 
-figure.subplot.left:   0.25 # 0.125  # the left side of the subplots of the figure
-figure.subplot.right:  0.95 # 0.9    # the right side of the subplots of the figure
-figure.subplot.bottom: 0.2 # 0.11   # the bottom of the subplots of the figure
-figure.subplot.top:    0.88   # the top of the subplots of the figure
+figure.subplot.left:   0.27 # 0.125, 0.25 in article  # from small.mplstyle
+figure.subplot.right:  0.93 # 0.9, 0.95 in article    # from small.mplstyle
+figure.subplot.bottom: 0.27 # 0.11, 0.2 in article   # from small.mplstyle
+figure.subplot.top:    0.93 # 0.88 in article         # from small.mplstyle
 
 errorbar.capsize: 3.5 # 0  # length of end cap on error bars in pixels
 

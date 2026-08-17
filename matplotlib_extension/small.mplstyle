@@ -1,5 +1,6 @@
 ## change thema to small of article.mplstyle
 ## use as plt.style.use(['matplotlib_extension.article', 'matplotlib_extension.small'])
+## or plt.style.use('matplotlib_extension.article_small')
 
 #### MATPLOTLIBRC FORMAT
 
