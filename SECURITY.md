@@ -1,0 +1,40 @@
+# Security Policy
+
+## Editable File Trust Boundary
+
+Treat every editable figure as untrusted input. Loading a file validates and parses data; it must not execute behavior selected by that file.
+
+The implementation has these non-negotiable rules:
+
+- no live Python object serialization or deserialization;
+- no source evaluation, dynamic execution, or file-selected import;
+- no file-selected class lookup or arbitrary class construction;
+- no automatic restore path for the legacy object-bearing format;
+- NumPy loads always use `allow_pickle=False`, and object or structured dtypes are rejected;
+- Matplotlib objects are restored only through explicit built-in allowlists;
+- container and package paths, counts, sizes, versions, duplicate entries, checksums, and dtypes are validated before restore;
+- TeX execution is disabled on restored text objects.
+
+The exact format and limits are documented in [docs/EDITABLE_FORMAT.md](docs/EDITABLE_FORMAT.md).
+
+## Unsupported Objects
+
+Saving an unsupported exact class, transform, locator, or formatter emits `UnsupportedFigureWarning` and records a warning in the manifest. The object is skipped. A class name in a file is never used to import or construct that class.
+
+This means restore is intentionally lossy outside the documented allowlist. Preserving the security boundary takes precedence over reproducing arbitrary extension objects.
+
+## OLE Boundary
+
+The `.ole` writer creates a generic CFB Package with one `\x01Ole10Native` stream. Loading accepts only that expected stream shape and then validates the same canonical package used by PDF, PNG, and SVG.
+
+The generic container is not a COM/OLE server and cannot itself provide an editing UI in PowerPoint. Any future Windows server must keep COM activation, UI commands, and export logic outside the canonical package parser.
+
+## Legacy Files
+
+Older `.plt.pdf` files can contain a live Python object stream. This project does not load that stream, even as a compatibility fallback. Opening such a file with `loadfig()` fails safely.
+
+Converting a trusted legacy file, if a separate migration tool is ever provided, must happen in an isolated environment and must never be part of the normal load path.
+
+## Reporting a Vulnerability
+
+Do not attach a malicious proof-of-concept to a public issue. Contact the repository owner privately first and include the affected format version, impact, and a minimal reproduction. Public tracking can be added after a coordinated fix is available.

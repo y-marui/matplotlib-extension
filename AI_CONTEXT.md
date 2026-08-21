@@ -2,11 +2,11 @@
 
 ## Project Overview
 
-matplotlib の拡張ライブラリ。図を dill オブジェクト付きの PDF（`.plt.pdf`）として保存・読み込みする機能と、軸フォーマッティング・LaTeX ラベルユーティリティを提供する。
+matplotlib の拡張ライブラリ。data-only canonical package を埋め込んだ editable PDF・PNG・SVG・OLE の安全な保存・復元機能と、軸フォーマッティング・LaTeX ラベルユーティリティを提供する。
 
 - **言語:** Python 3.11+
 - **パッケージマネージャ:** uv（`uv sync` / `uv add`）
-- **主要依存:** matplotlib, dill, pymupdf, pypdf, send2trash
+- **主要依存:** matplotlib, numpy, pypdf, olefile
 - **ツール:** ruff（lint/format）, mypy（型チェック）, pytest
 - **主要ディレクトリ:**
   - `matplotlib_extension/` — ライブラリ本体（pyplot.py, label_string.py, *.mplstyle）
@@ -33,6 +33,10 @@ matplotlib の拡張ライブラリ。図を dill オブジェクト付きの PD
 
 - 依存管理は uv のみ（poetry は使わない）
 - 型注釈は公開 API に必須
+- live Python object serializer、`eval` / `exec`、file-selected import/class construction は editable file の保存・読込に使用しない
+- NumPy array は `allow_pickle=False`、object/structured dtype 禁止
+- 旧 object-bearing `.plt.pdf` の自動 restore は禁止
+- format/security の正本は `docs/EDITABLE_FORMAT.md` と `SECURITY.md`
 
 ## AI Tool Assignments
 
