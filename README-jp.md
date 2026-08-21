@@ -9,7 +9,7 @@
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/y-marui?style=social)](https://github.com/sponsors/y-marui)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-donate-yellow.svg)](https://www.buymeacoffee.com/y.marui)
 
-matplotlib の拡張ライブラリ。図を安全な編集可能 PDF・PNG・SVG・OLE として保存・復元する機能と、軸フォーマッティングユーティリティを提供する。
+matplotlib の拡張ライブラリ。Figure の data-only package をプロット画像または OLE object に埋め込み、別の Python process / console で安全に復元して追加編集できるようにする。軸フォーマッティングユーティリティも提供する。
 
 ## Requirements
 
@@ -27,6 +27,8 @@ uv sync
 
 `matplotlib_extension` を import すると、既存の Matplotlib API に opt-in のキーワードが 1 つ追加される。表示部分は通常の PDF・PNG・SVG のままで、編集用の versioned data-only package が埋め込まれる。
 
+このパッケージにおける「editable」とは、ファイルや OLE object 自体に編集UIを持たせることではない。保存したプロットを別の Python process / console で `Figure` に復元し、通常の Matplotlib API で追加編集できることを意味する。
+
 ~~~python
 import matplotlib.pyplot as plt
 import matplotlib_extension
@@ -40,8 +42,11 @@ fig.savefig("figure.svg", editable=True)
 fig.savefig("figure.ole", editable=True)  # generic OLE Package container
 
 restored = matplotlib_extension.loadfig("figure.pdf")
+restored.axes[0].set_title("Edited in another Python console")
 restored.savefig("restored.png")
 ~~~
+
+PDF・PNG・SVGは通常の画像としてPowerPointを含む他のアプリケーションへ配置できる。OLEは同じcanonical packageを保持する受動的なデータ容器である。PowerPoint内の編集UI、Office add-in、COM/OLEの編集verb、埋め込みコードの実行は提供しない。編集は常に、対象ファイルまたは取り出したOLE objectをPythonへ渡し、`loadfig()`で復元して行う。
 
 独立 API では atomic overwrite と排他作成も指定できる。
 

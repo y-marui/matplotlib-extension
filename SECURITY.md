@@ -27,7 +27,7 @@ This means restore is intentionally lossy outside the documented allowlist. Pres
 
 The `.ole` writer creates a generic CFB Package with one `\x01Ole10Native` stream. Loading accepts only that expected stream shape and then validates the same canonical package used by PDF, PNG, and SVG.
 
-The generic container is not a COM/OLE server and cannot itself provide an editing UI in PowerPoint. Any future Windows server must keep COM activation, UI commands, and export logic outside the canonical package parser.
+The generic container is passive data storage, not a COM/OLE server, and cannot itself provide an editing UI in PowerPoint. Office add-ins, application-specific OLE servers, COM activation, and in-place editing are outside the project scope. The OLE object is edited only by passing it to a separate Python process and restoring a new `Figure` through the same validated, allowlisted path as the other bindings.
 
 ## Legacy Files
 

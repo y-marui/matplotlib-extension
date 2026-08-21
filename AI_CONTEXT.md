@@ -4,6 +4,8 @@
 
 matplotlib の拡張ライブラリ。data-only canonical package を埋め込んだ editable PDF・PNG・SVG・OLE の安全な保存・復元機能と、軸フォーマッティング・LaTeX ラベルユーティリティを提供する。
 
+「editable」は、保存した画像ファイルまたはOLE objectを別のPython process / consoleで`Figure`へrestoreし、Matplotlib APIで追加編集できることを意味する。PowerPoint内の編集UI、Office add-in、COM/OLE editing verb、application-specific OLE serverは提供しない。OLEはcanonical packageの受動的なデータ容器として扱う。
+
 - **言語:** Python 3.11+
 - **パッケージマネージャ:** uv（`uv sync` / `uv add`）
 - **主要依存:** matplotlib, numpy, pypdf, olefile

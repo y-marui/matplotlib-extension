@@ -7,15 +7,17 @@ GitHub [issue #28](https://github.com/y-marui/python-matplotlib-extension/issues
 - [#30 Canonical safe package and core round-trip](https://github.com/y-marui/python-matplotlib-extension/issues/30)
 - [#29 Editable PDF, PNG, and SVG bindings](https://github.com/y-marui/python-matplotlib-extension/issues/29)
 
-This release also writes and reads the canonical payload as a generic CFB/OLE Package. That storage layer does not claim to be an Office editing server.
+This release also writes and reads the canonical payload as a generic CFB/OLE Package. It is a passive data carrier: a separate Python process or console extracts it with `loadfig()` and performs all editing through Matplotlib.
 
 ## Coverage and Hardening
 
 - [#31 Expanded artist allowlist and numeric data recovery](https://github.com/y-marui/python-matplotlib-extension/issues/31)
 - [#32 Parser fuzzing and compatibility fixtures](https://github.com/y-marui/python-matplotlib-extension/issues/32)
 
-## Office Integration
+## OLE and Presentation Interoperability
 
-- [#33 Windows OLE server and PowerPoint export bridge](https://github.com/y-marui/python-matplotlib-extension/issues/33)
+- [#33 Python-centered OLE and presentation interoperability](https://github.com/y-marui/python-matplotlib-extension/issues/33)
 
-The Office phase keeps the canonical package unchanged, adds application-specific OLE verbs and export behavior on Windows, and does not prioritize Python-side PPTX scanning.
+This phase keeps the canonical package unchanged and improves workflows for placing editable graphics or OLE objects in presentation files, extracting their payload, restoring the `Figure` in a separate Python console, and writing an updated graphic or object.
+
+PowerPoint editing UI, Office add-ins, COM/OLE editing verbs, and an application-specific OLE server are out of scope. Python-side PPTX scanning may be added as convenience tooling, but it is not the editing runtime and is not required by the canonical format.

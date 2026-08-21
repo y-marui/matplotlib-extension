@@ -36,6 +36,8 @@ NumPy entries have these requirements:
 
 The reader constructs a new exact `matplotlib.figure.Figure`. The file cannot select a module, Python class, callable, backend, or constructor. Restore handlers are compiled into the library and map schema tags to explicit Matplotlib constructors.
 
+Restoration and editing always occur in a Python process. "Editable" means that a plot saved in one process can be passed to another Python process or console, restored with `loadfig()`, and modified using normal Matplotlib APIs. A container is never an editing runtime and cannot request execution of code.
+
 Schema version 1 supports:
 
 - exact `Figure` and `Axes` classes;
@@ -58,7 +60,9 @@ Every binding stores the exact canonical package bytes:
 
 `loadfig()` detects the binding from file signatures and extracts the package before running the same validation and restore path.
 
-The OLE binding is a portable storage object, not an OLE application server. It does not register a COM class, expose PowerPoint verbs, or run embedded code. A future Windows OLE server may host the same canonical bytes and export the existing PDF, PNG, and SVG bindings without changing the package format.
+The OLE binding is a portable, passive storage object, not an OLE application server. It does not register a COM class, expose PowerPoint verbs, provide an Office editing UI, or run embedded code. To edit it, a user or integration passes the OLE object to a Python process, which extracts the canonical package and calls the same safe restore path as every other binding.
+
+Presentation software may display the rendered PDF, PNG, or SVG and may carry the corresponding OLE object, but presentation software is not the editor. Office add-ins, application-specific OLE servers, and in-place editing are outside this format and this project's editing model.
 
 ## Resource Limits
 

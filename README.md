@@ -9,7 +9,7 @@
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/y-marui?style=social)](https://github.com/sponsors/y-marui)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-donate-yellow.svg)](https://www.buymeacoffee.com/y.marui)
 
-A matplotlib extension library that safely saves and restores figures as editable PDF, PNG, SVG, and OLE files, and provides axis formatting utilities.
+A matplotlib extension library that embeds a data-only Figure package in plot images or OLE objects so another Python process or console can safely restore and continue editing the Figure. It also provides axis formatting utilities.
 
 ## Requirements
 
@@ -27,6 +27,8 @@ uv sync
 
 Importing `matplotlib_extension` adds one opt-in keyword to Matplotlib's existing API. The visible PDF, PNG, or SVG remains a normal graphic, while a versioned data-only package is embedded for editing.
 
+In this package, "editable" does not mean that the file or OLE object contains an editing UI. It means that another Python process or console can restore the saved plot as a `Figure` and continue editing it with the normal Matplotlib API.
+
 ~~~python
 import matplotlib.pyplot as plt
 import matplotlib_extension
@@ -40,8 +42,11 @@ fig.savefig("figure.svg", editable=True)
 fig.savefig("figure.ole", editable=True)  # generic OLE Package container
 
 restored = matplotlib_extension.loadfig("figure.pdf")
+restored.axes[0].set_title("Edited in another Python console")
 restored.savefig("restored.png")
 ~~~
+
+PDF, PNG, and SVG outputs remain ordinary graphics that can be placed in applications including PowerPoint. OLE is a passive container for the same canonical package. This project does not provide an in-PowerPoint editor, Office add-in, COM/OLE editing verbs, or execution of embedded code. Editing always happens in Python after passing the file or extracted OLE object to `loadfig()`.
 
 The standalone API also supports atomic overwrite and exclusive creation:
 
