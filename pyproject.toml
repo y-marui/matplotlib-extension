@@ -9,10 +9,9 @@ readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = ">=3.11"
 dependencies = [
-    "dill>=0.3.8",
     "matplotlib>=3.8.2",
-    "pymupdf>=1.23.21",
-    "send2trash>=1.8.3",
+    "numpy>=1.26,<2.5",
+    "olefile>=0.47",
     "pypdf>=6.15.0",
 ]
 
@@ -31,6 +30,7 @@ build-backend = "hatchling.build"
 [tool.ruff]
 target-version = "py311"
 line-length = 120
+extend-exclude = ["docs/dev-charter"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]
