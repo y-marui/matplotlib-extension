@@ -7,6 +7,7 @@ from matplotlib.figure import Figure
 from matplotlib.ticker import MultipleLocator, PercentFormatter
 
 from matplotlib_extension import pyplot
+from matplotlib_extension.container import extract_payload
 from matplotlib_extension.package import PackageError
 
 
@@ -101,6 +102,35 @@ def test_savefig_append_is_explicitly_unsupported(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError, match="append is not supported"):
         pyplot.savefig(fig, filename, mode="a")
+    plt.close(fig)
+
+
+def test_extract_package_from_ole_object(tmp_path: Path) -> None:
+    fig = _figure()
+    ole_object = tmp_path / "oleObject1.bin"
+    package = tmp_path / "figure.mplpkg"
+    pyplot.savefig(fig, ole_object, format="ole")
+
+    pyplot.extract_package(ole_object, package)
+
+    restored = pyplot.loadfig(package)
+    assert restored.axes[0].get_title() == "A title"
+    assert package.read_bytes() == extract_payload(ole_object.read_bytes())
+    plt.close(fig)
+    plt.close(restored)
+
+
+def test_extract_package_is_exclusive_by_default(tmp_path: Path) -> None:
+    fig = _figure()
+    ole_object = tmp_path / "oleObject1.bin"
+    package = tmp_path / "figure.mplpkg"
+    pyplot.savefig(fig, ole_object, format="ole")
+    package.write_bytes(b"existing")
+
+    with pytest.raises(FileExistsError):
+        pyplot.extract_package(ole_object, package)
+
+    assert package.read_bytes() == b"existing"
     plt.close(fig)
 
 

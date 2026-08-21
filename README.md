@@ -48,6 +48,17 @@ restored.savefig("restored.png")
 
 PDF, PNG, and SVG outputs remain ordinary graphics that can be placed in applications including PowerPoint. OLE is a passive container for the same canonical package. This project does not provide an in-PowerPoint editor, Office add-in, COM/OLE editing verbs, or execution of embedded code. Editing always happens in Python after passing the file or extracted OLE object to `loadfig()`.
 
+An OLE object extracted by presentation software as a file such as `oleObject1.bin` can be restored directly because loading detects its file signature rather than trusting its extension. Use `extract_package()` when an independent canonical package file is desired.
+
+~~~python
+from matplotlib_extension import extract_package, loadfig
+
+fig = loadfig("oleObject1.bin")
+extract_package("oleObject1.bin", "figure.mplpkg")
+~~~
+
+The native file embedded in a Windows OLE Package is an `.mplpkg`. If PowerPoint offers a command to save the native file, the resulting `.mplpkg` can be passed directly to Python. Otherwise, open a copy of the PPTX as a ZIP, extract `ppt/embeddings/oleObject*.bin`, and pass that file to the API above. Neither path executes code in Office.
+
 The standalone API also supports atomic overwrite and exclusive creation:
 
 ~~~python

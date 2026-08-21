@@ -142,6 +142,27 @@ def loadfig(filename: Path | str) -> matplotlib.figure.Figure:
     return load_package(extract_payload(_read_file(filename)))
 
 
+def extract_package(
+    filename: Path | str,
+    destination: Path | str,
+    *,
+    mode: str = "x",
+) -> None:
+    """Extract a validated canonical package from an editable container.
+
+    This is primarily useful for OLE objects exported from presentation files.
+    The source filename and extension are not trusted; its file signature and
+    complete canonical package are validated before the ``.mplpkg`` is written.
+
+    Args:
+        filename: Editable PDF, PNG, SVG, OLE/CFB, or raw MPLPKG path.
+        destination: Destination for the extracted canonical package.
+        mode: ``"x"`` for exclusive creation or ``"w"`` for atomic overwrite.
+    """
+    payload = extract_payload(_read_file(filename))
+    _write_file(Path(destination), payload, mode)
+
+
 def recover_data(filename: Path | str) -> list[dict[str, Any]]:
     """Recover numeric records for supported-but-not-restored artist types."""
     return recover_numeric_data(extract_payload(_read_file(filename)))

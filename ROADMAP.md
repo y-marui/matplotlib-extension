@@ -18,6 +18,6 @@ This release also writes and reads the canonical payload as a generic CFB/OLE Pa
 
 - [#33 Python-centered OLE and presentation interoperability](https://github.com/y-marui/python-matplotlib-extension/issues/33)
 
-This phase keeps the canonical package unchanged and improves workflows for placing editable graphics or OLE objects in presentation files, extracting their payload, restoring the `Figure` in a separate Python console, and writing an updated graphic or object.
+This phase keeps the canonical package unchanged and improves workflows for placing editable graphics or OLE objects in presentation files, downloading or extracting the native `.mplpkg`/OLE `.bin`, restoring the `Figure` in a separate Python console, and writing an updated graphic or object.
 
 PowerPoint editing UI, Office add-ins, COM/OLE editing verbs, and an application-specific OLE server are out of scope. Python-side PPTX scanning may be added as convenience tooling, but it is not the editing runtime and is not required by the canonical format.
