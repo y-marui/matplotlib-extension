@@ -68,6 +68,8 @@ Presentation software may display the rendered PDF, PNG, or SVG and may carry th
 
 For Windows presentation workflows, the OLE Package native file is `figure.mplpkg`. An exported native file is therefore directly accepted by `loadfig()`. An export operation may instead return the complete CFB object as a `.bin`; because input detection is signature-based, that file is also accepted directly and can be converted to a standalone `.mplpkg` with `extract_package()`. Locating the intended object is the presentation application's responsibility, not a Python-side scan of the PPTX package.
 
+On macOS, where a Windows OLE verb cannot be the extraction contract, a presentation bridge may use the explicitly selected OLE Shape plus a temporary compressed copy of the current PPTX to resolve that Shape's OOXML relationship and save only its referenced CFB `.bin`. Shape-to-OOXML identifier mapping is an interoperability boundary and requires fixtures from supported PowerPoint versions; it must never fall back to guessing among multiple OLE objects. The bridge is not part of canonical parsing and does not inspect or restore the Figure package.
+
 ## Resource Limits
 
 Version 1 enforces limits before or during parsing:

@@ -8,6 +8,8 @@ matplotlib の拡張ライブラリ。data-only canonical package を埋め込�
 
 OLE/presentation連携では、ユーザーがPowerPoint上で目的のobjectを選択し、Windowsでnative `.mplpkg`またはOLE CFB `.bin`として保存・exportしてPythonの`loadfig()` / `extract_package()`へ渡す。Python側でPPTXを走査して対象objectを推測しない。汎用Packageの操作が不十分な場合は抽出専用verb/adapterを追加できるが、restore・編集・埋め込みコード実行は行わない。
 
+Macでは抽出専用PowerPoint bridgeが選択済みOLE ShapeとPowerPoint APIから得た一時PPTXコピーを使い、対応するOLE `.bin`だけをローカル抽出する。ShapeとOOXML relationshipの対応はfixtureで検証し、複数objectから推測しない。bridgeはpresentationをdefaultでuploadせず、Figureをrestore・編集しない。
+
 - **言語:** Python 3.11+
 - **パッケージマネージャ:** uv（`uv sync` / `uv add`）
 - **主要依存:** matplotlib, numpy, pypdf, olefile

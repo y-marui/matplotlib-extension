@@ -31,6 +31,8 @@ The generic container is passive data storage and cannot itself provide an editi
 
 A future Windows extraction/export verb or adapter may copy the selected object's native `.mplpkg` or OLE `.bin` to a user-selected destination. That component must not deserialize Python objects, construct a Figure, invoke a file-selected program, or provide in-place editing. It is an extraction boundary only.
 
+A macOS extraction bridge may request the selected PowerPoint Shape and a temporary OOXML copy of the current presentation solely to resolve that Shape's OLE relationship. Parsing and extraction must happen locally by default. The bridge must not upload the presentation, enumerate unrelated embedded payload contents, deserialize the canonical package, or construct a Figure. It writes only the selected object's `.bin` or `.mplpkg` for subsequent validation by Python.
+
 ## Legacy Files
 
 Older `.plt.pdf` files can contain a live Python object stream. This project does not load that stream, even as a compatibility fallback. Opening such a file with `loadfig()` fails safely.

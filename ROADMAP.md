@@ -20,4 +20,4 @@ This release also writes and reads the canonical payload as a generic CFB/OLE Pa
 
 This phase keeps the canonical package unchanged and supports selecting an OLE object in PowerPoint, saving or exporting its native `.mplpkg`/OLE `.bin`, restoring the `Figure` in a separate Python console, and writing an updated graphic or object.
 
-PowerPoint editing UI and Python-side PPTX object discovery are out of scope. If generic Package behavior is insufficient on Windows, a minimal extraction/export-only verb or adapter may be added. It must not restore a Figure, edit it, or execute embedded code; those operations remain exclusively in Python.
+PowerPoint editing UI and Python-side PPTX object discovery are out of scope. If generic Package behavior is insufficient on Windows, a minimal extraction/export-only verb or adapter may be added. On macOS, an extraction-only PowerPoint bridge uses the selected OLE Shape to resolve and save only its referenced OLE `.bin` from a locally obtained PPTX copy. Neither component may restore a Figure, edit it, upload the presentation by default, or execute embedded code; those operations remain exclusively in Python.

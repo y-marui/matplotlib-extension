@@ -61,6 +61,8 @@ WindowsのOLE Packageへ埋め込むnative fileは`.mplpkg`とする。ユーザ
 
 汎用OLE Packageの標準操作だけで安定して保存できない場合は、Windows向けに抽出・export専用のverbまたはadapterを追加できる。ただし、それは埋め込みデータをファイルへコピーするだけであり、Figureのrestoreや編集は行わない。編集処理は引き続きPythonだけで行う。
 
+MacではWindows OLEのactivationやverbに依存しない。PowerPoint用の抽出専用ブリッジが、ユーザーの選択したOLE Shapeと現在のPPTXコピーをPowerPoint APIから取得し、そのShapeが参照するOLE `.bin`だけをローカルで保存する。PPTX全体をPythonへ渡して対象を推測させず、ブリッジ内でもFigureのrestoreや編集は行わない。出力した`.bin`は同じ`loadfig()`へ渡す。
+
 独立 API では atomic overwrite と排他作成も指定できる。
 
 ~~~python

@@ -61,6 +61,8 @@ The native file embedded in a Windows OLE Package is an `.mplpkg`. The user sele
 
 If the generic OLE Package operations cannot save the native file reliably, a Windows extraction/export-only verb or adapter may be added. Such an adapter only copies the embedded data to a file; it never restores or edits a Figure. All editing remains in Python.
 
+On macOS, the workflow does not depend on Windows OLE activation or verbs. An extraction-only PowerPoint bridge obtains the user-selected OLE shape and a copy of the current PPTX through PowerPoint APIs, resolves only the OLE `.bin` referenced by that shape, and saves it locally. Python never receives the whole PPTX to guess the target, and the bridge never restores or edits a Figure. The exported `.bin` is passed to the same `loadfig()` API.
+
 The standalone API also supports atomic overwrite and exclusive creation:
 
 ~~~python
