@@ -46,7 +46,7 @@ restored.axes[0].set_title("Edited in another Python console")
 restored.savefig("restored.png")
 ~~~
 
-PDF・PNG・SVGは通常の画像としてPowerPointを含む他のアプリケーションへ配置できる。OLEは同じcanonical packageを保持する受動的なデータ容器である。PowerPoint内の編集UI、Office add-in、COM/OLEの編集verb、埋め込みコードの実行は提供しない。編集は常に、対象ファイルまたは取り出したOLE objectをPythonへ渡し、`loadfig()`で復元して行う。
+PDF・PNG・SVGは通常の画像としてPowerPointを含む他のアプリケーションへ配置できる。OLEは同じcanonical packageを保持する受動的なデータ容器である。PowerPoint内の編集UIや埋め込みコードの実行は提供しない。編集は常に、対象ファイルまたは取り出したOLE objectをPythonへ渡し、`loadfig()`で復元して行う。
 
 PowerPointなどからOLE objectを`oleObject1.bin`として取り出した場合も、拡張子ではなくファイル署名を判定するため直接復元できる。canonical packageを独立したファイルとして保存する場合は`extract_package()`を使う。
 
@@ -57,7 +57,9 @@ fig = loadfig("oleObject1.bin")
 extract_package("oleObject1.bin", "figure.mplpkg")
 ~~~
 
-WindowsのOLE Packageへ埋め込むnative fileは`.mplpkg`とする。PowerPointのUIがnative fileの保存を提供する場合は、取り出した`.mplpkg`をそのままPythonへ渡せる。UIから保存できない場合は、PPTXをZIPとして開いて`ppt/embeddings/oleObject*.bin`を取り出し、上記APIへ渡す。どちらの場合もOffice側でコードは実行しない。
+WindowsのOLE Packageへ埋め込むnative fileは`.mplpkg`とする。ユーザーはPowerPoint上で目的のOLE objectを選択し、そのobjectからnative `.mplpkg`またはOLE `.bin`を保存・exportしてPythonへ渡す。Python側でPPTX全体を走査して対象objectを推測する機能は提供しない。
+
+汎用OLE Packageの標準操作だけで安定して保存できない場合は、Windows向けに抽出・export専用のverbまたはadapterを追加できる。ただし、それは埋め込みデータをファイルへコピーするだけであり、Figureのrestoreや編集は行わない。編集処理は引き続きPythonだけで行う。
 
 独立 API では atomic overwrite と排他作成も指定できる。
 

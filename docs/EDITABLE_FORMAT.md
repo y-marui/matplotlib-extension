@@ -62,11 +62,11 @@ Every binding stores the exact canonical package bytes:
 
 `extract_package(source, destination)` performs the same extraction and validation but writes the exact canonical bytes to an independent `.mplpkg` file instead of constructing a `Figure`. Its default exclusive-create mode prevents an accidentally selected OLE object from overwriting an existing package.
 
-The OLE binding is a portable, passive storage object, not an OLE application server. It does not register a COM class, expose PowerPoint verbs, provide an Office editing UI, or run embedded code. To edit it, a user or integration passes the OLE object to a Python process, which extracts the canonical package and calls the same safe restore path as every other binding.
+The OLE binding is a portable, passive storage object, not an editing runtime. It does not provide an Office editing UI or run embedded code. To edit it, the user selects the intended object in the presentation application, exports it to a file, and passes that file to a Python process, which extracts the canonical package and calls the same safe restore path as every other binding.
 
-Presentation software may display the rendered PDF, PNG, or SVG and may carry the corresponding OLE object, but presentation software is not the editor. Office add-ins, application-specific OLE servers, and in-place editing are outside this format and this project's editing model.
+Presentation software may display the rendered PDF, PNG, or SVG and may carry the corresponding OLE object, but presentation software is not the editor. A platform adapter may expose extraction/export for the selected OLE object; it remains outside the canonical format and must only copy bytes to a file. In-place Figure editing remains outside this project's editing model.
 
-For Windows presentation workflows, the OLE Package native file is `figure.mplpkg`. An exported native file is therefore directly accepted by `loadfig()`. An OOXML presentation can instead expose the complete CFB object as a part such as `ppt/embeddings/oleObject1.bin`; because input detection is signature-based, that `.bin` file is also accepted directly and can be converted to a standalone `.mplpkg` with `extract_package()`.
+For Windows presentation workflows, the OLE Package native file is `figure.mplpkg`. An exported native file is therefore directly accepted by `loadfig()`. An export operation may instead return the complete CFB object as a `.bin`; because input detection is signature-based, that file is also accepted directly and can be converted to a standalone `.mplpkg` with `extract_package()`. Locating the intended object is the presentation application's responsibility, not a Python-side scan of the PPTX package.
 
 ## Resource Limits
 

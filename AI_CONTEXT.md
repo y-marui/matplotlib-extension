@@ -4,9 +4,9 @@
 
 matplotlib の拡張ライブラリ。data-only canonical package を埋め込んだ editable PDF・PNG・SVG・OLE の安全な保存・復元機能と、軸フォーマッティング・LaTeX ラベルユーティリティを提供する。
 
-「editable」は、保存した画像ファイルまたはOLE objectを別のPython process / consoleで`Figure`へrestoreし、Matplotlib APIで追加編集できることを意味する。PowerPoint内の編集UI、Office add-in、COM/OLE editing verb、application-specific OLE serverは提供しない。OLEはcanonical packageの受動的なデータ容器として扱う。
+「editable」は、保存した画像ファイルまたはOLE objectを別のPython process / consoleで`Figure`へrestoreし、Matplotlib APIで追加編集できることを意味する。PowerPoint内の編集UIは提供しない。OLEはcanonical packageの受動的なデータ容器として扱う。
 
-OLE/presentation連携で優先するのは、Windowsでnative `.mplpkg`として保存するか、PPTX内のOLE CFB `.bin`を取り出してPythonの`loadfig()` / `extract_package()`へ渡せること。特定のPowerPoint UIだけに依存しない。
+OLE/presentation連携では、ユーザーがPowerPoint上で目的のobjectを選択し、Windowsでnative `.mplpkg`またはOLE CFB `.bin`として保存・exportしてPythonの`loadfig()` / `extract_package()`へ渡す。Python側でPPTXを走査して対象objectを推測しない。汎用Packageの操作が不十分な場合は抽出専用verb/adapterを追加できるが、restore・編集・埋め込みコード実行は行わない。
 
 - **言語:** Python 3.11+
 - **パッケージマネージャ:** uv（`uv sync` / `uv add`）
