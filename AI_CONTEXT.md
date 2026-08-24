@@ -6,9 +6,9 @@ matplotlib の拡張ライブラリ。data-only canonical package を埋め込�
 
 「editable」は、保存した画像ファイルまたはOLE objectを別のPython process / consoleで`Figure`へrestoreし、Matplotlib APIで追加編集できることを意味する。PowerPoint内の編集UIは提供しない。OLEはcanonical packageの受動的なデータ容器として扱う。
 
-OLE/presentation連携では、ユーザーがPowerPoint上で目的のobjectを選択し、Windowsでnative `.mplpkg`またはOLE CFB `.bin`として保存・exportしてPythonの`loadfig()` / `extract_package()`へ渡す。Python側でPPTXを走査して対象objectを推測しない。汎用Packageの操作が不十分な場合は抽出専用verb/adapterを追加できるが、restore・編集・埋め込みコード実行は行わない。
+OLE/presentation連携のuser-facingな受け渡し形式は、Windows・Macとも通常に開ける`figure.editable.png`へ統一する。OLEのnative file自体をこのeditable PNGとし、raw `.bin`と`.mplpkg`は内部形式に限定する。Python側でPPTXを走査して対象objectを推測しない。汎用Packageの操作が不十分な場合は抽出専用verb/adapterを追加できるが、restore・編集・埋め込みコード実行は行わない。
 
-Macでは抽出専用PowerPoint bridgeが選択済みOLE ShapeとPowerPoint APIから得た一時PPTXコピーを使い、対応するOLE `.bin`だけをローカル抽出する。ShapeとOOXML relationshipの対応はfixtureで検証し、複数objectから推測しない。bridgeはpresentationをdefaultでuploadせず、Figureをrestore・編集しない。
+Macでは抽出専用PowerPoint bridgeが選択済みOLE ShapeとPowerPoint APIから得た一時PPTXコピーを使い、対応する内部OLE objectからnative editable PNGだけをローカル抽出する。ShapeとOOXML relationshipの対応はfixtureで検証し、複数objectから推測しない。bridgeはpresentationをdefaultでuploadせず、Figureをrestore・編集しない。
 
 - **言語:** Python 3.11+
 - **パッケージマネージャ:** uv（`uv sync` / `uv add`）

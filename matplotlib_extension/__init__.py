@@ -1,14 +1,14 @@
 __version__ = "0.1.0"
 
 from matplotlib_extension.package import PackageError, UnsupportedFigureWarning
-from matplotlib_extension.pyplot import extract_package, install_matplotlib_savefig, loadfig, recover_data, savefig
+from matplotlib_extension.pyplot import extract_editable_png, install_matplotlib_savefig, loadfig, recover_data, savefig
 
 install_matplotlib_savefig()
 
 __all__ = [
     "PackageError",
     "UnsupportedFigureWarning",
-    "extract_package",
+    "extract_editable_png",
     "install_matplotlib_savefig",
     "loadfig",
     "recover_data",

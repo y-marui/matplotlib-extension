@@ -22,7 +22,11 @@ CFB_SIGNATURE: Final = b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"
 PNG_CHUNK: Final = b"mpFg"
 PDF_ATTACHMENT: Final = "matplotlib-extension.mplpkg"
 OLE_STREAM: Final = "\x01Ole10Native"
+OLE_NATIVE_NAME: Final = b"figure.editable.png"
 SVG_NAMESPACE: Final = "https://github.com/y-marui/python-matplotlib-extension"
+MAX_RENDERED_BYTES: Final = 512 * 1024 * 1024
+MAX_EDITABLE_PNG_BYTES: Final = MAX_PACKAGE_BYTES + MAX_RENDERED_BYTES
+MAX_OLE_BYTES: Final = MAX_EDITABLE_PNG_BYTES + 16 * 1024 * 1024
 
 _SVG_PACKAGE_RE = re.compile(
     rb'<mplex:package\s+xmlns:mplex="https://github\.com/y-marui/python-matplotlib-extension"'
@@ -170,9 +174,9 @@ def extract_svg(data: bytes) -> bytes:
     return _validated_payload(payload)
 
 
-def _ole_native_stream(payload: bytes) -> bytes:
-    name = b"figure.mplpkg\x00"
-    path = b"C:\\figure.mplpkg\x00"
+def _ole_native_stream(editable_png: bytes) -> bytes:
+    name = OLE_NATIVE_NAME + b"\x00"
+    path = b"C:\\" + name
     body = BytesIO()
     body.write(b"\x00\x00\x00\x00")
     body.write(struct.pack("<H", 2))
@@ -180,8 +184,8 @@ def _ole_native_stream(payload: bytes) -> bytes:
     body.write(path)
     body.write(struct.pack("<II", 0, 0))
     body.write(name)
-    body.write(struct.pack("<I", len(payload)))
-    body.write(payload)
+    body.write(struct.pack("<I", len(editable_png)))
+    body.write(editable_png)
     value = bytearray(body.getvalue())
     struct.pack_into("<I", value, 0, len(value) - 4)
     return bytes(value)
@@ -222,10 +226,12 @@ def _chain(fat: list[int], sectors: list[int]) -> None:
         fat[sector] = sectors[index + 1] if index + 1 < len(sectors) else 0xFFFFFFFE
 
 
-def embed_ole(payload: bytes) -> bytes:
-    """Wrap the canonical payload in a generic OLE Package CFB object."""
-    _validated_payload(payload)
-    native = _ole_native_stream(payload)
+def embed_ole(editable_png: bytes) -> bytes:
+    """Wrap one validated editable PNG in a generic OLE Package CFB object."""
+    if len(editable_png) > MAX_EDITABLE_PNG_BYTES:
+        raise PackageError("Editable PNG exceeds the OLE native size limit")
+    extract_png(editable_png)
+    native = _ole_native_stream(editable_png)
     sector_size = 4096
     mini_sector_size = 64
     sectors: list[bytes] = []
@@ -332,24 +338,26 @@ def _read_cstring(data: bytes, position: int) -> tuple[bytes, int]:
     return data[position:end], end + 1
 
 
-def extract_ole(data: bytes) -> bytes:
-    """Extract and validate the canonical payload from a generic OLE Package."""
+def extract_ole_native_png(data: bytes) -> bytes:
+    """Extract and validate the editable PNG from a generic OLE Package."""
     if not data.startswith(CFB_SIGNATURE):
         raise PackageError("Not an OLE compound file")
-    if len(data) > MAX_PACKAGE_BYTES + 16 * 1024 * 1024:
+    if len(data) > MAX_OLE_BYTES:
         raise PackageError("OLE container exceeds the size limit")
     try:
         with olefile.OleFileIO(BytesIO(data), raise_defects=olefile.DEFECT_INCORRECT) as container:
             paths = container.listdir(streams=True, storages=True)
             if paths != [[OLE_STREAM]]:
                 raise PackageError("OLE container has unexpected streams or storages")
-            if container.get_size(OLE_STREAM) > MAX_PACKAGE_BYTES + 1_000_000:
+            if container.get_size(OLE_STREAM) > MAX_EDITABLE_PNG_BYTES + 1_000_000:
                 raise PackageError("OLE native stream exceeds the size limit")
-            native = container.openstream(OLE_STREAM).read(MAX_PACKAGE_BYTES + 1_000_000)
+            native = container.openstream(OLE_STREAM).read(MAX_EDITABLE_PNG_BYTES + 1_000_000)
     except PackageError:
         raise
     except Exception as exc:
         raise PackageError("Invalid OLE compound file") from exc
+    if not isinstance(native, bytes):
+        raise PackageError("Invalid OLE native stream")
     if len(native) < 32:
         raise PackageError("OLE native stream is truncated")
     total_size = struct.unpack_from("<I", native, 0)[0]
@@ -362,17 +370,24 @@ def extract_ole(data: bytes) -> bytes:
         raise PackageError("Unsupported OLE native stream version")
     display_name, position = _read_cstring(native, position)
     _source_path, position = _read_cstring(native, position)
-    if display_name != b"figure.mplpkg" or position + 8 > len(native):
+    if display_name != OLE_NATIVE_NAME or position + 8 > len(native):
         raise PackageError("Unexpected OLE package metadata")
     position += 8
     _temp_path, position = _read_cstring(native, position)
     if position + 4 > len(native):
         raise PackageError("OLE native stream is truncated")
-    payload_size = struct.unpack_from("<I", native, position)[0]
+    editable_png_size = struct.unpack_from("<I", native, position)[0]
     position += 4
-    if payload_size > MAX_PACKAGE_BYTES or position + payload_size != len(native):
-        raise PackageError("OLE payload size is invalid")
-    return _validated_payload(native[position:])
+    if editable_png_size > MAX_EDITABLE_PNG_BYTES or position + editable_png_size != len(native):
+        raise PackageError("OLE native payload size is invalid")
+    editable_png = native[position:]
+    extract_png(editable_png)
+    return editable_png
+
+
+def extract_ole(data: bytes) -> bytes:
+    """Extract the canonical payload from an editable-PNG OLE Package."""
+    return extract_png(extract_ole_native_png(data))
 
 
 def extract_payload(data: bytes) -> bytes:

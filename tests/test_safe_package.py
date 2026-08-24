@@ -18,7 +18,7 @@ from PIL import Image
 from pypdf import PdfReader, PdfWriter
 from pypdf.generic import NameObject
 
-from matplotlib_extension.container import extract_payload
+from matplotlib_extension.container import extract_ole_native_png, extract_payload
 from matplotlib_extension.package import (
     PackageError,
     UnsupportedFigureWarning,
@@ -97,6 +97,10 @@ def test_graphic_containers_remain_normally_readable(tmp_path: Path) -> None:
     assert olefile.isOleFile(ole)
     with olefile.OleFileIO(ole) as container:
         assert container.exists("\x01Ole10Native")
+    native_png = extract_ole_native_png(ole.read_bytes())
+    with Image.open(BytesIO(native_png)) as image:
+        image.verify()
+    assert extract_payload(native_png) == extract_payload(ole.read_bytes())
     plt.close(fig)
 
 

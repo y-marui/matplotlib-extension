@@ -11,9 +11,19 @@ import matplotlib.figure
 import numpy as np
 from matplotlib.ticker import MultipleLocator
 
-from matplotlib_extension.container import embed_ole, embed_pdf, embed_png, embed_svg, extract_payload
+from matplotlib_extension.container import (
+    CFB_SIGNATURE,
+    MAX_OLE_BYTES,
+    PNG_SIGNATURE,
+    embed_ole,
+    embed_pdf,
+    embed_png,
+    embed_svg,
+    extract_ole_native_png,
+    extract_payload,
+    extract_png,
+)
 from matplotlib_extension.package import (
-    MAX_PACKAGE_BYTES,
     PackageError,
     dump_package,
     load_package,
@@ -25,7 +35,7 @@ _ORIGINAL_FIGURE_SAVEFIG = getattr(
     "__matplotlib_extension_original_savefig__",
     matplotlib.figure.Figure.savefig,
 )
-_MAX_CONTAINER_BYTES = MAX_PACKAGE_BYTES + 512 * 1024 * 1024
+_MAX_CONTAINER_BYTES = MAX_OLE_BYTES
 
 
 def _output_format(filename: Path, requested: object) -> str:
@@ -101,10 +111,9 @@ def savefig(
     if output_format == "mplpkg":
         output = payload
     elif output_format == "ole":
-        if kwargs:
-            unknown = ", ".join(sorted(kwargs))
-            raise TypeError(f"OLE output does not accept render options: {unknown}")
-        output = embed_ole(payload)
+        rendered = BytesIO()
+        _ORIGINAL_FIGURE_SAVEFIG(fig, rendered, format="png", **kwargs)
+        output = embed_ole(embed_png(rendered.getvalue(), payload))
     else:
         rendered = BytesIO()
         _ORIGINAL_FIGURE_SAVEFIG(fig, rendered, format=output_format, **kwargs)
@@ -142,25 +151,36 @@ def loadfig(filename: Path | str) -> matplotlib.figure.Figure:
     return load_package(extract_payload(_read_file(filename)))
 
 
-def extract_package(
+def extract_editable_png(
     filename: Path | str,
     destination: Path | str,
     *,
     mode: str = "x",
 ) -> None:
-    """Extract a validated canonical package from an editable container.
+    """Extract one validated, user-facing editable PNG.
 
     This is primarily useful for OLE objects exported from presentation files.
-    The source filename and extension are not trusted; its file signature and
-    complete canonical package are validated before the ``.mplpkg`` is written.
+    An editable PNG source is validated and copied unchanged. An OLE/CFB source
+    is unwrapped to its native editable PNG. Other containers are rejected so
+    every presentation extraction produces the same normal image format.
 
     Args:
-        filename: Editable PDF, PNG, SVG, OLE/CFB, or raw MPLPKG path.
-        destination: Destination for the extracted canonical package.
+        filename: Editable PNG or OLE/CFB path.
+        destination: Destination ending in ``.png``.
         mode: ``"x"`` for exclusive creation or ``"w"`` for atomic overwrite.
     """
-    payload = extract_payload(_read_file(filename))
-    _write_file(Path(destination), payload, mode)
+    output = Path(destination)
+    if output.suffix.lower() != ".png":
+        raise ValueError("editable extraction destination must end in .png")
+    source = _read_file(filename)
+    if source.startswith(PNG_SIGNATURE):
+        extract_png(source)
+        editable_png = source
+    elif source.startswith(CFB_SIGNATURE):
+        editable_png = extract_ole_native_png(source)
+    else:
+        raise PackageError("Editable PNG extraction requires a PNG or OLE container")
+    _write_file(output, editable_png, mode)
 
 
 def recover_data(filename: Path | str) -> list[dict[str, Any]]:

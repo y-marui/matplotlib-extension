@@ -7,7 +7,7 @@ GitHub [issue #28](https://github.com/y-marui/python-matplotlib-extension/issues
 - [#30 Canonical safe package and core round-trip](https://github.com/y-marui/python-matplotlib-extension/issues/30)
 - [#29 Editable PDF, PNG, and SVG bindings](https://github.com/y-marui/python-matplotlib-extension/issues/29)
 
-This release also writes and reads the canonical payload as a generic CFB/OLE Package. It is a passive data carrier: a separate Python process or console extracts it with `loadfig()` and performs all editing through Matplotlib.
+This release also writes and reads a generic CFB/OLE Package whose native file is the same user-facing editable PNG. It is a passive data carrier: a separate Python process or console restores that PNG with `loadfig()` and performs all editing through Matplotlib.
 
 ## Coverage and Hardening
 
@@ -18,6 +18,6 @@ This release also writes and reads the canonical payload as a generic CFB/OLE Pa
 
 - [#33 Python-centered OLE and presentation interoperability](https://github.com/y-marui/python-matplotlib-extension/issues/33)
 
-This phase keeps the canonical package unchanged and supports selecting an OLE object in PowerPoint, saving or exporting its native `.mplpkg`/OLE `.bin`, restoring the `Figure` in a separate Python console, and writing an updated graphic or object.
+This phase keeps the canonical package unchanged and supports selecting an OLE object in PowerPoint, saving or exporting `figure.editable.png` on every platform, restoring the `Figure` in a separate Python console, and writing an updated graphic or object. Raw `.bin` and `.mplpkg` files remain implementation details rather than user-facing interchange formats.
 
-PowerPoint editing UI and Python-side PPTX object discovery are out of scope. If generic Package behavior is insufficient on Windows, a minimal extraction/export-only verb or adapter may be added. On macOS, an extraction-only PowerPoint bridge uses the selected OLE Shape to resolve and save only its referenced OLE `.bin` from a locally obtained PPTX copy. Neither component may restore a Figure, edit it, upload the presentation by default, or execute embedded code; those operations remain exclusively in Python.
+PowerPoint editing UI and Python-side PPTX object discovery are out of scope. If generic Package behavior is insufficient on Windows, a minimal extraction/export-only verb or adapter may be added. On macOS, an extraction-only PowerPoint bridge uses the selected OLE Shape to resolve its internal OLE part from a locally obtained PPTX copy, unwraps the native editable PNG, and saves only that PNG. Neither component may restore a Figure, edit it, upload the presentation by default, or execute embedded code; those operations remain exclusively in Python.

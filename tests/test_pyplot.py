@@ -1,3 +1,4 @@
+from io import BytesIO
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -5,9 +6,10 @@ import numpy as np
 import pytest
 from matplotlib.figure import Figure
 from matplotlib.ticker import MultipleLocator, PercentFormatter
+from PIL import Image
 
 from matplotlib_extension import pyplot
-from matplotlib_extension.container import extract_payload
+from matplotlib_extension.container import extract_ole_native_png, extract_payload
 from matplotlib_extension.package import PackageError
 
 
@@ -105,32 +107,56 @@ def test_savefig_append_is_explicitly_unsupported(tmp_path: Path) -> None:
     plt.close(fig)
 
 
-def test_extract_package_from_ole_object(tmp_path: Path) -> None:
+def test_extract_editable_png_from_ole_object(tmp_path: Path) -> None:
     fig = _figure()
     ole_object = tmp_path / "oleObject1.bin"
-    package = tmp_path / "figure.mplpkg"
+    editable_png = tmp_path / "figure.editable.png"
     pyplot.savefig(fig, ole_object, format="ole")
 
-    pyplot.extract_package(ole_object, package)
+    pyplot.extract_editable_png(ole_object, editable_png)
 
-    restored = pyplot.loadfig(package)
+    restored = pyplot.loadfig(editable_png)
     assert restored.axes[0].get_title() == "A title"
-    assert package.read_bytes() == extract_payload(ole_object.read_bytes())
+    assert editable_png.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
+    assert extract_payload(editable_png.read_bytes()) == extract_payload(ole_object.read_bytes())
     plt.close(fig)
     plt.close(restored)
 
 
-def test_extract_package_is_exclusive_by_default(tmp_path: Path) -> None:
+def test_extract_editable_png_is_exclusive_by_default(tmp_path: Path) -> None:
     fig = _figure()
     ole_object = tmp_path / "oleObject1.bin"
-    package = tmp_path / "figure.mplpkg"
+    editable_png = tmp_path / "figure.editable.png"
     pyplot.savefig(fig, ole_object, format="ole")
-    package.write_bytes(b"existing")
+    editable_png.write_bytes(b"existing")
 
     with pytest.raises(FileExistsError):
-        pyplot.extract_package(ole_object, package)
+        pyplot.extract_editable_png(ole_object, editable_png)
 
-    assert package.read_bytes() == b"existing"
+    assert editable_png.read_bytes() == b"existing"
+    plt.close(fig)
+
+
+def test_extract_editable_png_rejects_non_png_destination(tmp_path: Path) -> None:
+    fig = _figure()
+    ole_object = tmp_path / "oleObject1.bin"
+    pyplot.savefig(fig, ole_object, format="ole")
+
+    with pytest.raises(ValueError, match="must end in .png"):
+        pyplot.extract_editable_png(ole_object, tmp_path / "figure.mplpkg")
+
+    plt.close(fig)
+
+
+def test_ole_native_png_honors_render_options(tmp_path: Path) -> None:
+    fig = _figure()
+    ole_object = tmp_path / "figure.ole"
+
+    pyplot.savefig(fig, ole_object, dpi=80)
+
+    native_png = extract_ole_native_png(ole_object.read_bytes())
+    with Image.open(BytesIO(native_png)) as image:
+        assert image.size == (400, 240)
     plt.close(fig)
 
 
