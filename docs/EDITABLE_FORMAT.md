@@ -88,4 +88,4 @@ ZIP compression and unlisted, duplicate, absolute, parent-relative, empty, or ba
 
 Adding optional semantics requires a new figure schema version when an old reader could misinterpret them. Changing package layout, integrity rules, or canonical encoding requires a new package version. Readers must reject rather than partially interpret unknown versions.
 
-Legacy files containing live Python object streams are outside this format. The library never automatically restores them.
+Legacy files containing live Python object streams are outside this format. The library never restores them automatically, after a prompt, or as a compatibility fallback. A separately distributed deprecated migration tool may convert trusted legacy files to `.mpl.png`, but it remains outside the canonical reader and must follow the isolation and confirmation requirements in [SECURITY.md](../SECURITY.md). The resulting file is accepted only after normal signature, package, and allowlist validation.

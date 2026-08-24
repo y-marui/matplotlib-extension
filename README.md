@@ -76,6 +76,14 @@ savefig(fig, "new-figure.mpl.pdf", mode="x")
 savefig(fig, "figure.mplpkg")  # raw canonical package for diagnostics/advanced use
 ~~~
 
+### Legacy dill Files
+
+Older `.plt.pdf` files may contain live Python objects serialized with dill or a similar mechanism and can execute arbitrary code when loaded. `loadfig()` always rejects this format; it never attempts either an automatic or confirmation-based compatibility fallback.
+
+If one-way conversion of a trusted historical file is needed, a separately distributed, deprecated migration tool may be provided in the future. The main package will not depend on dill, pickle, or cloudpickle. Immediately before the first deserialization in a process, the migration tool must display an arbitrary-code-execution warning and require one exact confirmation phrase. Non-interactive use is denied by default; automation requires a deliberately explicit flag such as `--allow-arbitrary-code-execution`.
+
+Neither a prompt nor a subprocess makes dill safe. Do not convert an untrusted file. Even for a trusted file, use a disposable environment with networking disabled, read-only input, and write access limited to a dedicated output directory. The tool emits `.mpl.png`, which is then revalidated by the normal safe `loadfig()` path. Implementation is tracked in [issue #35](https://github.com/y-marui/python-matplotlib-extension/issues/35).
+
 The format never restores a serialized Python object. It uses canonical JSON and numeric NumPy arrays, restores only allowlisted Matplotlib types, rejects object dtypes, and verifies package paths, sizes, versions, and SHA-256 digests before constructing a new `Figure`. Legacy object-bearing files are rejected rather than restored.
 
 Current round-trip support covers basic `Figure`, `Axes`, `Line2D`, `Text`, `Legend`, scales, locators, and formatters. Unsupported objects are skipped with `UnsupportedFigureWarning`. Numeric scatter and image data can still be retrieved with `matplotlib_extension.recover_data()`; broader artist coverage is tracked in the [roadmap](ROADMAP.md).

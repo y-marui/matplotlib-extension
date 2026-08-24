@@ -76,6 +76,14 @@ savefig(fig, "new-figure.mpl.pdf", mode="x")
 savefig(fig, "figure.mplpkg")  # 内部検証・高度な用途向けraw canonical package
 ~~~
 
+### Legacy dill Files
+
+旧`.plt.pdf`はdill等でシリアライズされたlive Python objectを含む場合があり、読込時に任意コードを実行し得る。`loadfig()`はこの形式を常に拒否し、自動fallbackや確認付きfallbackも行わない。
+
+信頼できる旧ファイルの一方向変換が必要な場合は、将来、本体とは別配布のdeprecated migration toolとして提供する。本体はdill・pickle・cloudpickleへ依存しない。migration toolはprocess内で最初にdeserializeする直前に任意コード実行の危険を表示し、完全一致する確認文を1回だけ要求する。非対話環境はdefaultで拒否し、自動化には`--allow-arbitrary-code-execution`のような明示的な長いflagを要求する。
+
+確認やsubprocessによってdillが安全になるわけではない。信頼できないファイルは変換せず、必要な場合もnetwork無効・input read-only・専用output directoryだけを書込可能にした使い捨て環境を使う。出力は`.mpl.png`とし、通常の安全な`loadfig()`で再検証する。実装は[Issue #35](https://github.com/y-marui/python-matplotlib-extension/issues/35)で管理する。
+
 この形式は、シリアライズされた Python object を一切 restore しない。canonical JSON と numeric NumPy array だけを使い、allowlist 済みの Matplotlib type だけを復元する。object dtype は拒否し、新しい `Figure` を構築する前に package path・size・version・SHA-256 digest を検証する。旧 object-bearing file は復元せず拒否する。
 
 現在の round-trip 対象は、基本的な `Figure`、`Axes`、`Line2D`、`Text`、`Legend`、scale、locator、formatter。未対応 object は `UnsupportedFigureWarning` とともに skip する。scatter と image の numeric data は `matplotlib_extension.recover_data()` で回収でき、artist coverage の拡張は [roadmap](ROADMAP.md) で管理する。

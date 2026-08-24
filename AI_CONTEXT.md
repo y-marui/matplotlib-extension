@@ -42,6 +42,7 @@ Macでは抽出専用PowerPoint bridgeが選択済みOLE ShapeとPowerPoint API�
 - live Python object serializer、`eval` / `exec`、file-selected import/class construction は editable file の保存・読込に使用しない
 - NumPy array は `allow_pickle=False`、object/structured dtype 禁止
 - 旧 object-bearing `.plt.pdf` の自動 restore は禁止
+- 旧`.plt.pdf`は通常の`loadfig()`で常に拒否する。将来の変換機能は本体と別配布のdeprecated migration toolに限定し、最初のdeserialize直前にprocessごと1回の完全一致確認を要求する。非TTYはdefault拒否、自動化は`--allow-arbitrary-code-execution`のような明示flagを必須とする。確認やsubprocessを安全境界とはみなさず、隔離環境で`.mpl.png`へ一方向変換後、通常readerで再検証する
 - format/security の正本は `docs/EDITABLE_FORMAT.md` と `SECURITY.md`
 
 ## AI Tool Assignments

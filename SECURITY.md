@@ -37,7 +37,11 @@ A macOS extraction bridge may request the selected PowerPoint Shape and a tempor
 
 Older `.plt.pdf` files can contain a live Python object stream. This project does not load that stream, even as a compatibility fallback. Opening such a file with `loadfig()` fails safely.
 
-Converting a trusted legacy file, if a separate migration tool is ever provided, must happen in an isolated environment and must never be part of the normal load path.
+Any future legacy converter is a separately distributed, deprecated migration tool, not a loader or a dependency of the main package. The main package and `loadfig()` do not import dill, pickle, or cloudpickle. Recognized legacy input is rejected before object deserialization and may only direct the user to migration documentation.
+
+The migration process may deserialize only after displaying an arbitrary-code-execution warning immediately before its first deserialization and receiving one exact confirmation phrase. That confirmation applies once to the declared inputs in that process. Non-interactive execution is denied by default; automation requires a deliberately explicit flag such as `--allow-arbitrary-code-execution`, not a generic `--yes`.
+
+Confirmation and process separation provide informed consent, not safety. Conversion must be limited to trusted files and should run in a disposable environment with networking disabled, inputs mounted read-only, and write access limited to a dedicated output directory. The converter writes an allowlisted canonical `.mpl.png`; a separate normal process then validates it through `loadfig()`. The converter must not become a supported legacy editing path or weaken the canonical reader. Implementation is tracked in [issue #35](https://github.com/y-marui/python-matplotlib-extension/issues/35).
 
 ## Reporting a Vulnerability
 

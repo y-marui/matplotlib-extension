@@ -14,6 +14,12 @@ This release also writes and reads a generic CFB/OLE Package whose native file i
 - [#31 Expanded artist allowlist and numeric data recovery](https://github.com/y-marui/python-matplotlib-extension/issues/31)
 - [#32 Parser fuzzing and compatibility fixtures](https://github.com/y-marui/python-matplotlib-extension/issues/32)
 
+## Deprecated Legacy Migration
+
+- [#35 Isolated deprecated legacy dill migration tool](https://github.com/y-marui/python-matplotlib-extension/issues/35)
+
+The normal `loadfig()` path always rejects object-bearing legacy files. Any future converter is separately distributed, prompts exactly once per process before the first deserialization, defaults to refusing non-interactive execution, and emits `.mpl.png` for validation by the safe reader. The prompt is informed consent rather than a security boundary; conversion remains limited to trusted input in a disposable isolated environment.
+
 ## OLE and Presentation Interoperability
 
 - [#33 Python-centered OLE and presentation interoperability](https://github.com/y-marui/python-matplotlib-extension/issues/33)
