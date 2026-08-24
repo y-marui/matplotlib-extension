@@ -36,43 +36,43 @@ import matplotlib_extension
 fig, ax = plt.subplots()
 ax.plot([1, 2, 3], [1, 4, 9])
 
-fig.savefig("figure.pdf", editable=True)
-fig.savefig("figure.png", editable=True)
-fig.savefig("figure.svg", editable=True)
+fig.savefig("figure.mpl.pdf", editable=True)
+fig.savefig("figure.mpl.png", editable=True)
+fig.savefig("figure.mpl.svg", editable=True)
 fig.savefig("figure.ole", editable=True)  # native fileは通常に開けるeditable PNG
 
-restored = matplotlib_extension.loadfig("figure.pdf")
+restored = matplotlib_extension.loadfig("figure.mpl.pdf")
 restored.axes[0].set_title("Edited in another Python console")
 restored.savefig("restored.png")
 ~~~
 
 PDF・PNG・SVGは通常の画像としてPowerPointを含む他のアプリケーションへ配置できる。OLEは同じcanonical packageを保持する受動的なデータ容器である。PowerPoint内の編集UIや埋め込みコードの実行は提供しない。編集は常に、対象ファイルまたは取り出したOLE objectをPythonへ渡し、`loadfig()`で復元して行う。
 
-PowerPointからユーザーが保存するファイル形式は、Windows・Macとも`figure.editable.png`に統一する。これは通常のPNGとして開け、同時に安全なcanonical payloadを保持する。`.bin`はPPTX内部、`.mplpkg`はcanonical serialization内部の形式であり、通常の受け渡しには使わない。
+編集可能な画像は、通常形式と目視で区別できるよう`.mpl.png`・`.mpl.pdf`・`.mpl.svg`のcompound suffixを使う。PowerPointからユーザーが保存するファイル形式は、Windows・Macとも`figure.mpl.png`に統一する。これは通常のPNGとして開け、同時に安全なcanonical payloadを保持する。`.bin`はPPTX内部、`.mplpkg`はcanonical serialization内部の形式であり、通常の受け渡しには使わない。
 
 ~~~python
 from matplotlib_extension import extract_editable_png, loadfig
 
 # PowerPointの抽出ブリッジが保存した共通形式
-fig = loadfig("figure.editable.png")
+fig = loadfig("figure.mpl.png")
 
 # raw OLE/CFBを手動で取得した場合の低レベル救済API
-extract_editable_png("oleObject1.bin", "figure.editable.png")
+extract_editable_png("oleObject1.bin", "figure.mpl.png")
 ~~~
 
-OLE Packageへ埋め込むnative file自体を`figure.editable.png`とする。Windowsでは標準OLE操作または抽出専用adapterがこのnative PNGを保存する。Python側でPPTX全体を走査して対象objectを推測する機能は提供しない。
+OLE Packageへ埋め込むnative file自体を`figure.mpl.png`とする。Windowsでは標準OLE操作または抽出専用adapterがこのnative PNGを保存する。Python側でPPTX全体を走査して対象objectを推測する機能は提供しない。
 
 汎用OLE Packageの標準操作だけで安定して保存できない場合は、Windows向けに抽出・export専用のverbまたはadapterを追加できる。ただし、それは埋め込みeditable PNGをファイルへコピーするだけであり、Figureのrestoreや編集は行わない。編集処理は引き続きPythonだけで行う。
 
-MacではWindows OLEのactivationやverbに依存しない。PowerPoint用の抽出専用ブリッジが、ユーザーの選択したOLE Shapeと現在のPPTXコピーをPowerPoint APIから取得し、そのShapeが参照する内部OLE objectからnative PNGを取り出して`figure.editable.png`として保存する。PPTX全体をPythonへ渡して対象を推測させず、ブリッジ内でもFigureのrestoreや編集は行わない。
+MacではWindows OLEのactivationやverbに依存しない。PowerPoint用の抽出専用ブリッジが、ユーザーの選択したOLE Shapeと現在のPPTXコピーをPowerPoint APIから取得し、そのShapeが参照する内部OLE objectからnative PNGを取り出して`figure.mpl.png`として保存する。PPTX全体をPythonへ渡して対象を推測させず、ブリッジ内でもFigureのrestoreや編集は行わない。
 
 独立 API では atomic overwrite と排他作成も指定できる。
 
 ~~~python
 from matplotlib_extension import savefig
 
-savefig(fig, "figure.pdf")
-savefig(fig, "new-figure.pdf", mode="x")
+savefig(fig, "figure.mpl.pdf")
+savefig(fig, "new-figure.mpl.pdf", mode="x")
 savefig(fig, "figure.mplpkg")  # 内部検証・高度な用途向けraw canonical package
 ~~~
 

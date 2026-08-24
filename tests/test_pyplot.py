@@ -26,13 +26,16 @@ def _figure() -> Figure:
     return fig
 
 
-@pytest.mark.parametrize("suffix", ["pdf", "png", "svg", "ole", "mplpkg"])
-def test_save_and_loadfig_all_formats(tmp_path: Path, suffix: str) -> None:
+@pytest.mark.parametrize(
+    "filename",
+    ["figure.mpl.pdf", "figure.mpl.png", "figure.mpl.svg", "figure.ole", "figure.mplpkg"],
+)
+def test_save_and_loadfig_all_formats(tmp_path: Path, filename: str) -> None:
     fig = _figure()
-    filename = tmp_path / f"figure.{suffix}"
+    destination = tmp_path / filename
 
-    pyplot.savefig(fig, filename)
-    restored = pyplot.loadfig(filename)
+    pyplot.savefig(fig, destination)
+    restored = pyplot.loadfig(destination)
 
     assert isinstance(restored, Figure)
     assert len(restored.axes) == 1
@@ -55,7 +58,7 @@ def test_save_and_loadfig_all_formats(tmp_path: Path, suffix: str) -> None:
 
 def test_figure_savefig_editable_keyword(tmp_path: Path) -> None:
     fig = _figure()
-    filename = tmp_path / "figure.png"
+    filename = tmp_path / "figure.mpl.png"
 
     fig.savefig(filename, editable=True)
 
@@ -76,9 +79,19 @@ def test_normal_savefig_is_unchanged(tmp_path: Path) -> None:
     plt.close(fig)
 
 
+@pytest.mark.parametrize("filename", ["figure.pdf", "figure.png", "figure.svg"])
+def test_editable_save_requires_mpl_compound_suffix(tmp_path: Path, filename: str) -> None:
+    fig = _figure()
+
+    with pytest.raises(ValueError, match=r"must end in \.mpl\."):
+        pyplot.savefig(fig, tmp_path / filename)
+
+    plt.close(fig)
+
+
 def test_savefig_exclusive_mode(tmp_path: Path) -> None:
     fig = _figure()
-    filename = tmp_path / "exclusive.pdf"
+    filename = tmp_path / "exclusive.mpl.pdf"
     pyplot.savefig(fig, filename, mode="x")
 
     with pytest.raises(FileExistsError):
@@ -88,7 +101,7 @@ def test_savefig_exclusive_mode(tmp_path: Path) -> None:
 
 def test_savefig_overwrites_atomically(tmp_path: Path) -> None:
     fig = _figure()
-    filename = tmp_path / "overwrite.pdf"
+    filename = tmp_path / "overwrite.mpl.pdf"
     filename.write_bytes(b"old")
 
     pyplot.savefig(fig, filename)
@@ -100,7 +113,7 @@ def test_savefig_overwrites_atomically(tmp_path: Path) -> None:
 
 def test_savefig_append_is_explicitly_unsupported(tmp_path: Path) -> None:
     fig = _figure()
-    filename = tmp_path / "append.pdf"
+    filename = tmp_path / "append.mpl.pdf"
 
     with pytest.raises(ValueError, match="append is not supported"):
         pyplot.savefig(fig, filename, mode="a")
@@ -110,7 +123,7 @@ def test_savefig_append_is_explicitly_unsupported(tmp_path: Path) -> None:
 def test_extract_editable_png_from_ole_object(tmp_path: Path) -> None:
     fig = _figure()
     ole_object = tmp_path / "oleObject1.bin"
-    editable_png = tmp_path / "figure.editable.png"
+    editable_png = tmp_path / "figure.mpl.png"
     pyplot.savefig(fig, ole_object, format="ole")
 
     pyplot.extract_editable_png(ole_object, editable_png)
@@ -126,7 +139,7 @@ def test_extract_editable_png_from_ole_object(tmp_path: Path) -> None:
 def test_extract_editable_png_is_exclusive_by_default(tmp_path: Path) -> None:
     fig = _figure()
     ole_object = tmp_path / "oleObject1.bin"
-    editable_png = tmp_path / "figure.editable.png"
+    editable_png = tmp_path / "figure.mpl.png"
     pyplot.savefig(fig, ole_object, format="ole")
     editable_png.write_bytes(b"existing")
 
@@ -137,13 +150,14 @@ def test_extract_editable_png_is_exclusive_by_default(tmp_path: Path) -> None:
     plt.close(fig)
 
 
-def test_extract_editable_png_rejects_non_png_destination(tmp_path: Path) -> None:
+@pytest.mark.parametrize("filename", ["figure.png", "figure.mplpkg"])
+def test_extract_editable_png_rejects_non_mpl_png_destination(tmp_path: Path, filename: str) -> None:
     fig = _figure()
     ole_object = tmp_path / "oleObject1.bin"
     pyplot.savefig(fig, ole_object, format="ole")
 
-    with pytest.raises(ValueError, match="must end in .png"):
-        pyplot.extract_editable_png(ole_object, tmp_path / "figure.mplpkg")
+    with pytest.raises(ValueError, match=r"must end in \.mpl\.png"):
+        pyplot.extract_editable_png(ole_object, tmp_path / filename)
 
     plt.close(fig)
 

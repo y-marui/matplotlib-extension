@@ -36,43 +36,43 @@ import matplotlib_extension
 fig, ax = plt.subplots()
 ax.plot([1, 2, 3], [1, 4, 9])
 
-fig.savefig("figure.pdf", editable=True)
-fig.savefig("figure.png", editable=True)
-fig.savefig("figure.svg", editable=True)
+fig.savefig("figure.mpl.pdf", editable=True)
+fig.savefig("figure.mpl.png", editable=True)
+fig.savefig("figure.mpl.svg", editable=True)
 fig.savefig("figure.ole", editable=True)  # native file is a normal editable PNG
 
-restored = matplotlib_extension.loadfig("figure.pdf")
+restored = matplotlib_extension.loadfig("figure.mpl.pdf")
 restored.axes[0].set_title("Edited in another Python console")
 restored.savefig("restored.png")
 ~~~
 
 PDF, PNG, and SVG outputs remain ordinary graphics that can be placed in applications including PowerPoint. OLE is a passive container for the same canonical package. This project does not provide an in-PowerPoint editor or execute embedded code. Editing always happens in Python after passing the file or extracted OLE object to `loadfig()`.
 
-The user-facing file saved from PowerPoint is always `figure.editable.png` on both Windows and macOS. It opens as a normal PNG while carrying the safe canonical payload. `.bin` is an internal PPTX part and `.mplpkg` is the internal canonical serialization; neither is the normal interchange format.
+Editable graphics use the compound suffixes `.mpl.png`, `.mpl.pdf`, and `.mpl.svg` so they are visually distinguishable from ordinary files. The user-facing file saved from PowerPoint is always `figure.mpl.png` on both Windows and macOS. It opens as a normal PNG while carrying the safe canonical payload. `.bin` is an internal PPTX part and `.mplpkg` is the internal canonical serialization; neither is the normal interchange format.
 
 ~~~python
 from matplotlib_extension import extract_editable_png, loadfig
 
 # Common file saved by the PowerPoint extraction bridge.
-fig = loadfig("figure.editable.png")
+fig = loadfig("figure.mpl.png")
 
 # Low-level recovery when a raw OLE/CFB part was obtained manually.
-extract_editable_png("oleObject1.bin", "figure.editable.png")
+extract_editable_png("oleObject1.bin", "figure.mpl.png")
 ~~~
 
-The native file embedded in the OLE Package is itself `figure.editable.png`. On Windows, standard OLE behavior or an extraction-only adapter saves this native PNG. Python does not scan the entire PPTX and guess which object should be restored.
+The native file embedded in the OLE Package is itself `figure.mpl.png`. On Windows, standard OLE behavior or an extraction-only adapter saves this native PNG. Python does not scan the entire PPTX and guess which object should be restored.
 
 If the generic OLE Package operations cannot save the native file reliably, a Windows extraction/export-only verb or adapter may be added. Such an adapter only copies the embedded editable PNG to a file; it never restores or edits a Figure. All editing remains in Python.
 
-On macOS, the workflow does not depend on Windows OLE activation or verbs. An extraction-only PowerPoint bridge obtains the user-selected OLE shape and a copy of the current PPTX through PowerPoint APIs, resolves its internal OLE object, unwraps the native PNG, and saves `figure.editable.png`. Python never receives the whole PPTX to guess the target, and the bridge never restores or edits a Figure.
+On macOS, the workflow does not depend on Windows OLE activation or verbs. An extraction-only PowerPoint bridge obtains the user-selected OLE shape and a copy of the current PPTX through PowerPoint APIs, resolves its internal OLE object, unwraps the native PNG, and saves `figure.mpl.png`. Python never receives the whole PPTX to guess the target, and the bridge never restores or edits a Figure.
 
 The standalone API also supports atomic overwrite and exclusive creation:
 
 ~~~python
 from matplotlib_extension import savefig
 
-savefig(fig, "figure.pdf")
-savefig(fig, "new-figure.pdf", mode="x")
+savefig(fig, "figure.mpl.pdf")
+savefig(fig, "new-figure.mpl.pdf", mode="x")
 savefig(fig, "figure.mplpkg")  # raw canonical package for diagnostics/advanced use
 ~~~
 

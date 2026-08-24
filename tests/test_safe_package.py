@@ -72,8 +72,14 @@ def test_package_is_deterministic_and_data_only() -> None:
 def test_every_container_embeds_identical_payload(tmp_path: Path) -> None:
     fig = _simple_figure()
     payloads = []
-    for suffix in ("pdf", "png", "svg", "ole", "mplpkg"):
-        path = tmp_path / f"figure.{suffix}"
+    for filename in (
+        "figure.mpl.pdf",
+        "figure.mpl.png",
+        "figure.mpl.svg",
+        "figure.ole",
+        "figure.mplpkg",
+    ):
+        path = tmp_path / filename
         savefig(fig, path)
         payloads.append(extract_payload(path.read_bytes()))
 
@@ -83,9 +89,9 @@ def test_every_container_embeds_identical_payload(tmp_path: Path) -> None:
 
 def test_graphic_containers_remain_normally_readable(tmp_path: Path) -> None:
     fig = _simple_figure()
-    png = tmp_path / "figure.png"
-    pdf = tmp_path / "figure.pdf"
-    svg = tmp_path / "figure.svg"
+    png = tmp_path / "figure.mpl.png"
+    pdf = tmp_path / "figure.mpl.pdf"
+    svg = tmp_path / "figure.mpl.svg"
     ole = tmp_path / "figure.ole"
     for path in (png, pdf, svg, ole):
         savefig(fig, path)
@@ -106,7 +112,7 @@ def test_graphic_containers_remain_normally_readable(tmp_path: Path) -> None:
 
 def test_compressed_pdf_attachment_is_rejected_before_decoding(tmp_path: Path) -> None:
     fig = _simple_figure()
-    path = tmp_path / "figure.pdf"
+    path = tmp_path / "figure.mpl.pdf"
     savefig(fig, path)
     reader = PdfReader(path)
     entries = reader.root_object["/Names"]["/EmbeddedFiles"]["/Names"]
@@ -217,7 +223,7 @@ def test_unsupported_subclass_is_warned_and_skipped() -> None:
 def test_scatter_numeric_data_remains_recoverable(tmp_path: Path) -> None:
     fig, ax = plt.subplots()
     ax.scatter([1.0, 2.0], [3.0, 4.0], s=[5.0, 6.0], c=[7.0, 8.0], label="samples")
-    path = tmp_path / "scatter.png"
+    path = tmp_path / "scatter.mpl.png"
 
     with pytest.warns(UnsupportedFigureWarning, match="Stored raw numeric data"):
         savefig(fig, path)

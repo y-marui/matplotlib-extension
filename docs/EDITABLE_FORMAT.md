@@ -55,20 +55,20 @@ Every binding stores the exact canonical package bytes:
 - PDF: an embedded file named `matplotlib-extension.mplpkg` in a normal Matplotlib PDF.
 - PNG: a private ancillary, safe-to-copy `mpFg` chunk immediately before `IEND`.
 - SVG: base64 in `mplex:package` metadata under the namespace `https://github.com/y-marui/python-matplotlib-extension`.
-- OLE: a generic Package CFB object with one `\x01Ole10Native` stream whose native file is a normal PNG named `figure.editable.png`; that PNG contains the exact canonical package bytes in its `mpFg` chunk.
+- OLE: a generic Package CFB object with one `\x01Ole10Native` stream whose native file is a normal PNG named `figure.mpl.png`; that PNG contains the exact canonical package bytes in its `mpFg` chunk.
 - MPLPKG: the canonical ZIP bytes without an outer container.
 
 `loadfig()` detects the binding from file signatures and extracts the package before running the same validation and restore path.
 
-`extract_editable_png(source, destination)` validates and copies an editable PNG source, or unwraps and validates the native editable PNG from an OLE/CFB source. It accepts no other output format, and its default exclusive-create mode prevents an accidentally selected object from overwriting an existing PNG.
+Editable graphics use `.mpl.png`, `.mpl.pdf`, and `.mpl.svg` compound suffixes so users can distinguish them from ordinary graphics by filename. `extract_editable_png(source, destination)` validates and copies an editable PNG source, or unwraps and validates the native editable PNG from an OLE/CFB source. Its destination must end in `.mpl.png`; it accepts no other output format, and its default exclusive-create mode prevents an accidentally selected object from overwriting an existing PNG.
 
 The OLE binding is a portable, passive storage object, not an editing runtime. It does not provide an Office editing UI or run embedded code. To edit it, the user selects the intended object in the presentation application, exports it to a file, and passes that file to a Python process, which extracts the canonical package and calls the same safe restore path as every other binding.
 
 Presentation software may display the rendered PDF, PNG, or SVG and may carry the corresponding OLE object, but presentation software is not the editor. A platform adapter may expose extraction/export for the selected OLE object; it remains outside the canonical format and must only copy bytes to a file. In-place Figure editing remains outside this project's editing model.
 
-For Windows presentation workflows, the OLE Package native file is `figure.editable.png`. A standard OLE export or extraction-only adapter writes that PNG directly. Locating the intended object is the presentation application's responsibility, not a Python-side scan of the PPTX package.
+For Windows presentation workflows, the OLE Package native file is `figure.mpl.png`. A standard OLE export or extraction-only adapter writes that PNG directly. Locating the intended object is the presentation application's responsibility, not a Python-side scan of the PPTX package.
 
-On macOS, where a Windows OLE verb cannot be the extraction contract, a presentation bridge may use the explicitly selected OLE Shape plus a temporary compressed copy of the current PPTX to resolve that Shape's OOXML relationship, read its internal CFB object, and save only the native `figure.editable.png`. Shape-to-OOXML identifier mapping is an interoperability boundary and requires fixtures from supported PowerPoint versions; it must never fall back to guessing among multiple OLE objects. The bridge is not part of canonical parsing and does not inspect or restore the Figure package.
+On macOS, where a Windows OLE verb cannot be the extraction contract, a presentation bridge may use the explicitly selected OLE Shape plus a temporary compressed copy of the current PPTX to resolve that Shape's OOXML relationship, read its internal CFB object, and save only the native `figure.mpl.png`. Shape-to-OOXML identifier mapping is an interoperability boundary and requires fixtures from supported PowerPoint versions; it must never fall back to guessing among multiple OLE objects. The bridge is not part of canonical parsing and does not inspect or restore the Figure package.
 
 ## Resource Limits
 

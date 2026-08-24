@@ -76,6 +76,14 @@ def _write_file(filename: Path, data: bytes, mode: str) -> None:
         raise
 
 
+def _require_editable_filename(filename: Path, output_format: str) -> None:
+    if output_format not in {"pdf", "png", "svg"}:
+        return
+    expected_suffix = f".mpl.{output_format}"
+    if not filename.name.lower().endswith(expected_suffix):
+        raise ValueError(f"editable {output_format.upper()} destination must end in {expected_suffix}")
+
+
 def savefig(
     fig: matplotlib.figure.Figure,
     filename: Path | str,
@@ -89,7 +97,7 @@ def savefig(
 
     Args:
         fig: The exact allowlisted Matplotlib ``Figure`` to serialize.
-        filename: Destination ending in ``.pdf``, ``.png``, ``.svg``,
+        filename: Destination ending in ``.mpl.pdf``, ``.mpl.png``, ``.mpl.svg``,
             ``.ole``, or ``.mplpkg``.
         editable: When false, delegate to Matplotlib's original ``savefig``.
         mode: ``"w"`` for atomic overwrite or ``"x"`` for exclusive create.
@@ -107,6 +115,7 @@ def savefig(
         _ORIGINAL_FIGURE_SAVEFIG(fig, destination, format=output_format, **kwargs)
         return
 
+    _require_editable_filename(destination, output_format)
     payload = dump_package(fig)
     if output_format == "mplpkg":
         output = payload
@@ -166,12 +175,12 @@ def extract_editable_png(
 
     Args:
         filename: Editable PNG or OLE/CFB path.
-        destination: Destination ending in ``.png``.
+        destination: Destination ending in ``.mpl.png``.
         mode: ``"x"`` for exclusive creation or ``"w"`` for atomic overwrite.
     """
     output = Path(destination)
-    if output.suffix.lower() != ".png":
-        raise ValueError("editable extraction destination must end in .png")
+    if not output.name.lower().endswith(".mpl.png"):
+        raise ValueError("editable extraction destination must end in .mpl.png")
     source = _read_file(filename)
     if source.startswith(PNG_SIGNATURE):
         extract_png(source)
