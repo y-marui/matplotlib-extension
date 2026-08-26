@@ -86,7 +86,7 @@ savefig(fig, "figure.mplpkg")  # 内部検証・高度な用途向けraw canonic
 
 この形式は、シリアライズされた Python object を一切 restore しない。canonical JSON と numeric NumPy array だけを使い、allowlist 済みの Matplotlib type だけを復元する。object dtype は拒否し、新しい `Figure` を構築する前に package path・size・version・SHA-256 digest を検証する。旧 object-bearing file は復元せず拒否する。
 
-現在の round-trip 対象は、基本的な `Figure`、`Axes`、`Line2D`、`Text`、`Legend`、scale、locator、formatter。未対応 object は `UnsupportedFigureWarning` とともに skip する。scatter と image の numeric data は `matplotlib_extension.recover_data()` で回収でき、artist coverage の拡張は [roadmap](ROADMAP.md) で管理する。
+現在の round-trip 対象は、基本的な `Figure`、`Axes`、`Line2D`、`Text`、`Legend`、scale、locator、formatter。未対応 object は `UnsupportedFigureWarning` とともに skip する。scatter と image の numeric data は `matplotlib_extension.recover_data()` で回収でき、artist coverage の拡張は [Issue #31](https://github.com/y-marui/python-matplotlib-extension/issues/31) で管理する。
 
 trust boundary の詳細は [format specification](docs/EDITABLE_FORMAT.md) と [security policy](SECURITY.md) を参照。
 

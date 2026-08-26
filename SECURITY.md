@@ -15,6 +15,8 @@ The implementation has these non-negotiable rules:
 - container and package paths, counts, sizes, versions, duplicate entries, checksums, and dtypes are validated before restore;
 - TeX execution is disabled on restored text objects.
 
+All untrusted discriminators are handled with positive, exact allowlists rather than denylists or fallback discovery. Unknown container bindings, schema tags, enum values, object kinds, classes, dtypes, locators, formatters, and presentation relationship types are rejected. Unsupported live Matplotlib objects may be skipped with a warning during saving, but a file never expands the restore allowlist. Adding a supported type requires an explicit implementation and, where interpretation changes, a schema version change.
+
 The exact format and limits are documented in [docs/EDITABLE_FORMAT.md](docs/EDITABLE_FORMAT.md).
 
 ## Unsupported Objects
@@ -32,6 +34,8 @@ The generic container is passive data storage and cannot itself provide an editi
 A future Windows extraction/export verb or adapter may copy the selected object's native editable PNG to a user-selected destination. That component must not deserialize Python objects, construct a Figure, invoke a file-selected program, or provide in-place editing. It is an extraction boundary only.
 
 A macOS extraction bridge may request the selected PowerPoint Shape and a temporary OOXML copy of the current presentation solely to resolve that Shape's OLE relationship and unwrap its native editable PNG. Parsing and extraction must happen locally by default. The bridge must not upload the presentation, enumerate unrelated embedded payload contents, deserialize the canonical package, or construct a Figure. It writes only `figure.mpl.png` for subsequent validation by Python.
+
+Presentation bridges are also allowlist-first. They accept only an explicitly supported selected OLE Shape, OOXML relationship and content type, normalized package-local embedded-object target, the expected CFB Package layout with exactly one `\x01Ole10Native` stream, the native filename `figure.mpl.png`, and a validated editable PNG. Missing, unknown, additional, or ambiguous structure is rejected rather than guessed or generically exported.
 
 ## Legacy Files
 

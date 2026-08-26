@@ -10,6 +10,8 @@ editable graphicsは通常形式と目視で区別できる`.mpl.png`・`.mpl.pd
 
 Macでは抽出専用PowerPoint bridgeが選択済みOLE ShapeとPowerPoint APIから得た一時PPTXコピーを使い、対応する内部OLE objectからnative editable PNGだけをローカル抽出する。ShapeとOOXML relationshipの対応はfixtureで検証し、複数objectから推測しない。bridgeはpresentationをdefaultでuploadせず、Figureをrestore・編集しない。
 
+PPTX package生成とOLE bytesの埋め込みはportable OOXML処理としてMac・Linux・Windowsで可能にし、Windows COMやPowerPointを生成要件にしない。OS依存なのはactivationとselected-object exportである。restore/parser/presentation bridgeはdenylistでなくpositive exact allowlistを原則とし、Shape type、relationship/content type、normalized target、CFB stream、native filename、container/schema tag、class/dtype等が未知・追加・曖昧なら推測せず拒否する。
+
 - **言語:** Python 3.11+
 - **パッケージマネージャ:** uv（`uv sync` / `uv add`）
 - **主要依存:** matplotlib, numpy, pypdf, olefile
@@ -40,6 +42,7 @@ Macでは抽出専用PowerPoint bridgeが選択済みOLE ShapeとPowerPoint API�
 - 依存管理は uv のみ（poetry は使わない）
 - 型注釈は公開 API に必須
 - live Python object serializer、`eval` / `exec`、file-selected import/class construction は editable file の保存・読込に使用しない
+- untrusted inputのdiscriminatorはpositive exact allowlistで処理し、denylist fallbackやdynamic registry lookupを行わない。未知のserialized valueはload時に拒否し、未対応live objectはsave時にwarning付きskipまたはallowlist済みnumeric recoveryだけを行う
 - NumPy array は `allow_pickle=False`、object/structured dtype 禁止
 - 旧 object-bearing `.plt.pdf` の自動 restore は禁止
 - 旧`.plt.pdf`は通常の`loadfig()`で常に拒否する。将来の変換機能は本体と別配布のdeprecated migration toolに限定し、最初のdeserialize直前にprocessごと1回の完全一致確認を要求する。非TTYはdefault拒否、自動化は`--allow-arbitrary-code-execution`のような明示flagを必須とする。確認やsubprocessを安全境界とはみなさず、隔離環境で`.mpl.png`へ一方向変換後、通常readerで再検証する

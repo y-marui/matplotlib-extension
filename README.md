@@ -86,7 +86,7 @@ Neither a prompt nor a subprocess makes dill safe. Do not convert an untrusted f
 
 The format never restores a serialized Python object. It uses canonical JSON and numeric NumPy arrays, restores only allowlisted Matplotlib types, rejects object dtypes, and verifies package paths, sizes, versions, and SHA-256 digests before constructing a new `Figure`. Legacy object-bearing files are rejected rather than restored.
 
-Current round-trip support covers basic `Figure`, `Axes`, `Line2D`, `Text`, `Legend`, scales, locators, and formatters. Unsupported objects are skipped with `UnsupportedFigureWarning`. Numeric scatter and image data can still be retrieved with `matplotlib_extension.recover_data()`; broader artist coverage is tracked in the [roadmap](ROADMAP.md).
+Current round-trip support covers basic `Figure`, `Axes`, `Line2D`, `Text`, `Legend`, scales, locators, and formatters. Unsupported objects are skipped with `UnsupportedFigureWarning`. Numeric scatter and image data can still be retrieved with `matplotlib_extension.recover_data()`; broader artist coverage is tracked in [issue #31](https://github.com/y-marui/python-matplotlib-extension/issues/31).
 
 See the [format specification](docs/EDITABLE_FORMAT.md) and [security policy](SECURITY.md) for the exact trust boundary.
 

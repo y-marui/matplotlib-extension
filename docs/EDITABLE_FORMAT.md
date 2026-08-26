@@ -36,6 +36,8 @@ NumPy entries have these requirements:
 
 The reader constructs a new exact `matplotlib.figure.Figure`. The file cannot select a module, Python class, callable, backend, or constructor. Restore handlers are compiled into the library and map schema tags to explicit Matplotlib constructors.
 
+The restore model is allowlist-first at every discriminator. There is no denylist fallback, dynamic registry lookup, arbitrary import, or best-effort construction for an unknown container, schema tag, enum, object kind, class, dtype, locator, or formatter. Unsupported live objects can be skipped with stable warnings while saving; unknown serialized values are rejected while loading.
+
 Restoration and editing always occur in a Python process. "Editable" means that a plot saved in one process can be passed to another Python process or console, restored with `loadfig()`, and modified using normal Matplotlib APIs. A container is never an editing runtime and cannot request execution of code.
 
 Schema version 1 supports:
@@ -69,6 +71,8 @@ Presentation software may display the rendered PDF, PNG, or SVG and may carry th
 For Windows presentation workflows, the OLE Package native file is `figure.mpl.png`. A standard OLE export or extraction-only adapter writes that PNG directly. Locating the intended object is the presentation application's responsibility, not a Python-side scan of the PPTX package.
 
 On macOS, where a Windows OLE verb cannot be the extraction contract, a presentation bridge may use the explicitly selected OLE Shape plus a temporary compressed copy of the current PPTX to resolve that Shape's OOXML relationship, read its internal CFB object, and save only the native `figure.mpl.png`. Shape-to-OOXML identifier mapping is an interoperability boundary and requires fixtures from supported PowerPoint versions; it must never fall back to guessing among multiple OLE objects. The bridge is not part of canonical parsing and does not inspect or restore the Figure package.
+
+PPTX package generation and embedding of the OLE bytes are portable OOXML operations and must not require Windows COM, PowerPoint, or OLE activation. Generated packages may be created on macOS, Linux, or Windows. Activation and user-selected export behavior remain platform-specific interoperability surfaces. Extraction bridges positively allowlist the selected Shape type, OOXML relationship/content type and normalized target, CFB stream layout, native filename, and editable PNG binding; all unknown or ambiguous structures fail closed.
 
 ## Resource Limits
 
