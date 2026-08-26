@@ -11,11 +11,19 @@ on:
         description: "Path to the dev-charter subtree within the project"
         default: "docs/dev-charter"
         type: string
+      branch:
+        description: "dev-charter branch/variant to track (main = full, lite = lite)"
+        default: "main"
+        type: string
   workflow_dispatch:
     inputs:
       prefix:
         description: "Path to the dev-charter subtree within the project"
         default: "."
+        type: string
+      branch:
+        description: "dev-charter branch/variant to track (main = full, lite = lite)"
+        default: "main"
         type: string
   push:
     branches: [main]
@@ -76,9 +84,12 @@ jobs:
         run: |
           PREFIX="${{ inputs.prefix }}"
           PREFIX="${PREFIX:-"."}"
+          BRANCH="${{ inputs.branch }}"
+          BRANCH="${BRANCH:-main}"
+          echo "branch=${BRANCH}" >> "$GITHUB_OUTPUT"
 
           REMOTE=$(curl -sf --max-time 10 \
-            "https://raw.githubusercontent.com/y-marui/dev-charter/main/VERSION" \
+            "https://raw.githubusercontent.com/y-marui/dev-charter/${BRANCH}/VERSION" \
             | head -1)
           if [ -z "$REMOTE" ]; then
             echo "::error::Failed to fetch remote VERSION from dev-charter"
@@ -111,20 +122,22 @@ jobs:
         run: |
           set -euo pipefail
           REMOTE="${{ steps.versions.outputs.remote }}"
+          SOURCE_BRANCH="${{ steps.versions.outputs.branch }}"
           BRANCH="update-charter"
+          [ "${SOURCE_BRANCH}" = "main" ] || BRANCH="update-charter-${SOURCE_BRANCH}"
           PREFIX="${{ steps.versions.outputs.prefix }}"
 
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
 
           git remote add dev-charter https://github.com/y-marui/dev-charter.git || true
-          git fetch dev-charter main
+          git fetch dev-charter "${SOURCE_BRANCH}"
 
           git checkout -B "${BRANCH}" origin/main
 
           if ! git subtree pull \
               --prefix="${PREFIX}" \
-              dev-charter main \
+              dev-charter "${SOURCE_BRANCH}" \
               --squash \
               -m "chore: update dev-charter to ${REMOTE}"; then
             # Fallback: template project (no subtree history)
@@ -132,10 +145,10 @@ jobs:
             git reset --hard HEAD
             git clean -fd "${PREFIX}/"
 
-            SPLIT=$(git rev-parse dev-charter/main)
+            SPLIT=$(git rev-parse "dev-charter/${SOURCE_BRANCH}")
             rm -rf "${PREFIX}/"
             mkdir -p "${PREFIX}"
-            git archive dev-charter/main | tar -x -C "${PREFIX}/"
+            git archive "dev-charter/${SOURCE_BRANCH}" | tar -x -C "${PREFIX}/"
             git add "${PREFIX}/"
 
             git commit -m "$(printf "Squashed '%s/' content from commit %s\n\ngit-subtree-dir: %s\ngit-subtree-split: %s" \
@@ -150,12 +163,17 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           REMOTE="${{ steps.versions.outputs.remote }}"
+          SOURCE_BRANCH="${{ steps.versions.outputs.branch }}"
+          BRANCH="update-charter"
+          [ "${SOURCE_BRANCH}" = "main" ] || BRANCH="update-charter-${SOURCE_BRANCH}"
 
           gh label create "dev-charter" --color "#0075ca" --description "dev-charter update" --force
 
-          gh pr create \
-            --title "chore: update dev-charter to ${REMOTE}" \
-            --body "$(cat <<EOF
+          # lite にはINSTALL_CHECKLIST.md/UPDATE_CHECKLIST.md が含まれない
+          # （scripts/lite-manifest.txt で full 専用として除外）ため、
+          # 存在しないファイルを案内しないよう本文を branch ごとに分ける。
+          if [ "${SOURCE_BRANCH}" = "main" ]; then
+            BODY=$(cat <<EOF
           ## Update dev-charter to ${REMOTE}
 
           \`git subtree pull\` has been applied automatically.
@@ -180,13 +198,31 @@ jobs:
 
           > 全ファイルを網羅的に確認したい場合は \`docs/dev-charter/INSTALL_CHECKLIST.md\` を使用してください。
           EOF
-          )" \
+          )
+          else
+            BODY=$(cat <<EOF
+          ## Update dev-charter (${SOURCE_BRANCH}) to ${REMOTE}
+
+          \`git subtree pull\` has been applied automatically. Review the diff, then merge.
+
+          ---
+
+          ## dev-charter（${SOURCE_BRANCH}）を ${REMOTE} に更新
+
+          \`git subtree pull\` を自動的に適用しました。差分を確認してマージしてください。
+          EOF
+          )
+          fi
+
+          gh pr create \
+            --title "chore: update dev-charter (${SOURCE_BRANCH}) to ${REMOTE}" \
+            --body "$BODY" \
             --base main \
-            --head update-charter \
+            --head "${BRANCH}" \
             --label "dev-charter" \
             --assignee "${{ github.repository_owner }}" \
             --draft || \
-            gh pr list --head update-charter --base main --json number --jq length | grep -q '^[1-9]'
+            gh pr list --head "${BRANCH}" --base main --json number --jq length | grep -q '^[1-9]'
 
       # Fails the check on purpose. This workflow is event-driven (no
       # schedule trigger), so if we only opened the update PR above and
@@ -200,7 +236,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          PR_NUM=$(gh pr list --repo "${{ github.repository }}" --head update-charter --base main --json number --jq '.[0].number // empty')
+          SOURCE_BRANCH="${{ steps.versions.outputs.branch }}"
+          BRANCH="update-charter"
+          [ "${SOURCE_BRANCH}" = "main" ] || BRANCH="update-charter-${SOURCE_BRANCH}"
+          PR_NUM=$(gh pr list --repo "${{ github.repository }}" --head "${BRANCH}" --base main --json number --jq '.[0].number // empty')
           echo "::error::dev-charter is outdated (local VERSION does not match remote ${{ steps.versions.outputs.remote }})."
           if [ -n "$PR_NUM" ]; then
             echo "::error::An update PR is ready: #${PR_NUM}. Merge it (or apply docs/dev-charter/UPDATE_CHECKLIST.md manually), then re-run this check."

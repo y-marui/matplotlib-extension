@@ -1,80 +1,231 @@
+import os
+import tempfile
 from collections.abc import Callable
+from functools import wraps
 from io import BytesIO
 from pathlib import Path
 from typing import Any
 
-import dill
-import fitz
 import matplotlib
 import matplotlib.figure
 import numpy as np
 from matplotlib.ticker import MultipleLocator
-from pypdf import PdfWriter
-from send2trash import send2trash
+
+from matplotlib_extension.container import (
+    CFB_SIGNATURE,
+    MAX_OLE_BYTES,
+    PNG_SIGNATURE,
+    embed_ole,
+    embed_pdf,
+    embed_png,
+    embed_svg,
+    extract_ole_native_png,
+    extract_payload,
+    extract_png,
+)
+from matplotlib_extension.package import (
+    PackageError,
+    dump_package,
+    load_package,
+    recover_numeric_data,
+)
+
+_ORIGINAL_FIGURE_SAVEFIG = getattr(
+    matplotlib.figure.Figure,
+    "__matplotlib_extension_original_savefig__",
+    matplotlib.figure.Figure.savefig,
+)
+_MAX_CONTAINER_BYTES = MAX_OLE_BYTES
 
 
-def savefig(fig: matplotlib.figure.Figure, filename: Path | str, mode: str = "x", title: str = "Figure") -> None:
-    """Save the current figure to a file of ".plt.pdf" which is PDF file including dill object.
+def _output_format(filename: Path, requested: object) -> str:
+    if requested is not None:
+        if not isinstance(requested, str):
+            raise ValueError("format must be a string")
+        output_format = requested.lower()
+    elif filename.name.lower().endswith(".mplpkg"):
+        output_format = "mplpkg"
+    else:
+        output_format = filename.suffix.lower().removeprefix(".")
+    if output_format not in {"pdf", "png", "svg", "ole", "mplpkg"}:
+        raise ValueError("Editable figures support PDF, PNG, SVG, OLE, and MPLPKG")
+    return output_format
+
+
+def _write_file(filename: Path, data: bytes, mode: str) -> None:
+    if mode not in {"x", "w"}:
+        raise ValueError("mode must be 'x' or 'w'; editable append is not supported")
+    if mode == "x":
+        with filename.open("xb") as stream:
+            stream.write(data)
+        return
+    descriptor, temporary_name = tempfile.mkstemp(
+        dir=filename.parent,
+        prefix=f".{filename.name}.",
+        suffix=".tmp",
+    )
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "wb") as stream:
+            stream.write(data)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, filename)
+    except BaseException:
+        temporary.unlink(missing_ok=True)
+        raise
+
+
+def _require_editable_filename(filename: Path, output_format: str) -> None:
+    if output_format not in {"pdf", "png", "svg"}:
+        return
+    expected_suffix = f".mpl.{output_format}"
+    if not filename.name.lower().endswith(expected_suffix):
+        raise ValueError(f"editable {output_format.upper()} destination must end in {expected_suffix}")
+
+
+def savefig(
+    fig: matplotlib.figure.Figure,
+    filename: Path | str,
+    *,
+    editable: bool = True,
+    mode: str = "w",
+    title: str = "Figure",
+    **kwargs: Any,
+) -> None:
+    """Save a normal graphic with a safe editable figure package embedded.
 
     Args:
-        filename (str): The name of the file to save the figure to.
+        fig: The exact allowlisted Matplotlib ``Figure`` to serialize.
+        filename: Destination ending in ``.mpl.pdf``, ``.mpl.png``, ``.mpl.svg``,
+            ``.ole``, or ``.mplpkg``.
+        editable: When false, delegate to Matplotlib's original ``savefig``.
+        mode: ``"w"`` for atomic overwrite or ``"x"`` for exclusive create.
+        title: PDF outline title.
+        **kwargs: Normal Matplotlib ``savefig`` keyword arguments.
     """
-    assert mode in ["x", "w", "a"]
+    destination = Path(filename)
+    if mode not in {"x", "w"}:
+        raise ValueError("mode must be 'x' or 'w'; editable append is not supported")
+    requested_format = kwargs.pop("format", None)
+    output_format = _output_format(destination, requested_format)
+    if not editable:
+        if output_format in {"ole", "mplpkg"}:
+            raise ValueError("OLE and MPLPKG are editable-only formats")
+        _ORIGINAL_FIGURE_SAVEFIG(fig, destination, format=output_format, **kwargs)
+        return
 
-    if isinstance(filename, str):
-        filename = Path(filename)
-
-    with PdfWriter() as merger:
-        if filename.exists():
-            if mode == "x":
-                raise FileExistsError(f"{filename}")
-            elif mode == "w":
-                send2trash(filename)
-            elif mode == "a":
-                merger.append(filename)
-
-        with BytesIO() as fp_pdf:
-            fig.savefig(fp_pdf, format="pdf")
-            fp_pdf.seek(0)
-
-            with BytesIO() as fp_dill:
-                dill.dump(fig, fp_dill)
-                fp_dill.seek(0)
-
-                doc = fitz.open("pdf", fp_pdf)
-                page: fitz.Page = doc[0]
-                page.add_file_annot(None, fp_dill, "fig.dill")
-                doc.save(fp_pdf)
-                fp_pdf.seek(0)
-
-            merger.append(fp_pdf)
-            merger.add_outline_item(title, merger.get_num_pages() - 1)
-
-        merger.write(filename)
+    _require_editable_filename(destination, output_format)
+    payload = dump_package(fig)
+    if output_format == "mplpkg":
+        output = payload
+    elif output_format == "ole":
+        rendered = BytesIO()
+        _ORIGINAL_FIGURE_SAVEFIG(fig, rendered, format="png", **kwargs)
+        output = embed_ole(embed_png(rendered.getvalue(), payload))
+    else:
+        rendered = BytesIO()
+        _ORIGINAL_FIGURE_SAVEFIG(fig, rendered, format=output_format, **kwargs)
+        if output_format == "pdf":
+            output = embed_pdf(rendered.getvalue(), payload, title=title)
+        elif output_format == "png":
+            output = embed_png(rendered.getvalue(), payload)
+        else:
+            output = embed_svg(rendered.getvalue(), payload)
+    _write_file(destination, output, mode)
 
 
-def loadfig(filename: Path | str) -> list[matplotlib.figure.Figure]:
-    """Load the figure from a file of ".plt.pdf" which is PDF file including dill object.
+def _read_file(filename: Path | str) -> bytes:
+    source = Path(filename)
+    with source.open("rb") as stream:
+        data = stream.read(_MAX_CONTAINER_BYTES + 1)
+    if len(data) > _MAX_CONTAINER_BYTES:
+        raise PackageError("Editable figure container exceeds the size limit")
+    return data
+
+
+def loadfig(filename: Path | str) -> matplotlib.figure.Figure:
+    """Restore one Figure from any supported editable container.
 
     Args:
-        filename (str): The name of the file to load the figure from.
+        filename: Editable PDF, PNG, SVG, OLE, or raw MPLPKG path.
 
     Returns:
-        list[matplotlib.figure.Figure]: The figure objects.
+        A newly constructed allowlisted Matplotlib Figure.
+
+    Raises:
+        PackageError: If the container or package is invalid, unsafe, legacy,
+            or unsupported. Legacy dill files are never deserialized.
     """
-    if isinstance(filename, str):
-        filename = Path(filename)
+    return load_package(extract_payload(_read_file(filename)))
 
-    with filename.open("rb") as fp:
-        doc = fitz.open(fp)
-        figs = []
-        for page in doc:
-            for annot in page.annots():
-                if annot.info["content"] == "fig.dill":
-                    fig = dill.loads(annot.get_file())
-                    figs.append(fig)
 
-        return figs
+def extract_editable_png(
+    filename: Path | str,
+    destination: Path | str,
+    *,
+    mode: str = "x",
+) -> None:
+    """Extract one validated, user-facing editable PNG.
+
+    This is primarily useful for OLE objects exported from presentation files.
+    An editable PNG source is validated and copied unchanged. An OLE/CFB source
+    is unwrapped to its native editable PNG. Other containers are rejected so
+    every presentation extraction produces the same normal image format.
+
+    Args:
+        filename: Editable PNG or OLE/CFB path.
+        destination: Destination ending in ``.mpl.png``.
+        mode: ``"x"`` for exclusive creation or ``"w"`` for atomic overwrite.
+    """
+    output = Path(destination)
+    if not output.name.lower().endswith(".mpl.png"):
+        raise ValueError("editable extraction destination must end in .mpl.png")
+    source = _read_file(filename)
+    if source.startswith(PNG_SIGNATURE):
+        extract_png(source)
+        editable_png = source
+    elif source.startswith(CFB_SIGNATURE):
+        editable_png = extract_ole_native_png(source)
+    else:
+        raise PackageError("Editable PNG extraction requires a PNG or OLE container")
+    _write_file(output, editable_png, mode)
+
+
+def recover_data(filename: Path | str) -> list[dict[str, Any]]:
+    """Recover numeric records for supported-but-not-restored artist types."""
+    return recover_numeric_data(extract_payload(_read_file(filename)))
+
+
+def install_matplotlib_savefig() -> None:
+    """Install support for ``fig.savefig(..., editable=True)`` once."""
+    current = matplotlib.figure.Figure.savefig
+    if getattr(current, "__matplotlib_extension_editable__", False):
+        return
+
+    @wraps(current)
+    def savefig_with_editable(
+        figure: matplotlib.figure.Figure,
+        filename: Path | str,
+        *args: Any,
+        editable: bool = False,
+        **kwargs: Any,
+    ) -> Any:
+        if not editable:
+            return current(figure, filename, *args, **kwargs)
+        if args:
+            raise TypeError("editable savefig accepts keyword arguments after filename")
+        mode = kwargs.pop("mode", "w")
+        title = kwargs.pop("title", "Figure")
+        return savefig(figure, filename, editable=True, mode=mode, title=title, **kwargs)
+
+    setattr(savefig_with_editable, "__matplotlib_extension_editable__", True)
+    setattr(
+        matplotlib.figure.Figure,
+        "__matplotlib_extension_original_savefig__",
+        _ORIGINAL_FIGURE_SAVEFIG,
+    )
+    setattr(matplotlib.figure.Figure, "savefig", savefig_with_editable)
 
 
 def _adjust_locator_axis(

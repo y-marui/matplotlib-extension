@@ -90,6 +90,41 @@ git subtree pull --prefix=docs/dev-charter dev-charter main --squash
 docs/dev-charter/UPDATE_CHECKLIST.md を実行して
 ```
 
+## Lite Version
+
+`main`（このリポジトリ全体）は、Python 開発環境・UI デザイン・収益化方針など
+ソフトウェアプロジェクト固有の内容を多く含む。ドキュメントのみのリポジトリ
+（設定ファイル集、ノートアーカイブ等）ではそのまま導入すると過剰になる場合、
+`lite` ブランチを使うと、プロジェクト種別を問わず普遍的に価値がある部分
+（AI コンテキストの整備、GitHub Issues/Projects でのタスク管理、シークレット
+管理等）だけを取り込める。収録ファイルの分類は
+[scripts/lite-manifest.txt](scripts/lite-manifest.txt) を参照。
+
+Quick Install（`CHARTER_BRANCH=lite` を指定）：
+
+```bash
+CHARTER_BRANCH=lite bash <(curl -fsSL https://raw.githubusercontent.com/y-marui/dev-charter/main/scripts/install.sh)
+```
+
+git subtree で直接導入する場合：
+
+```
+git remote add dev-charter https://github.com/y-marui/dev-charter
+git fetch dev-charter
+git subtree add --prefix=docs/dev-charter dev-charter lite --squash
+```
+
+Version Check (CI) を使う場合は `branch: lite` を指定する：
+
+```yaml
+    uses: y-marui/dev-charter/.github/workflows/check-charter.yml@main
+    with:
+      branch: lite
+```
+
+lite の `VERSION` は full とは独立して管理され、収録ファイルの内容が実際に
+変わったときだけ更新される（無関係な full 側の変更で更新PRが飛ばないようにするため）。
+
 ## Makefile Helper
 
 `git subtree pull` は作業ツリーに未コミットの変更があると失敗するため、

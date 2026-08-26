@@ -1,58 +1,185 @@
+from io import BytesIO
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
+from matplotlib.figure import Figure
+from matplotlib.ticker import MultipleLocator, PercentFormatter
+from PIL import Image
 
 from matplotlib_extension import pyplot
+from matplotlib_extension.container import extract_ole_native_png, extract_payload
+from matplotlib_extension.package import PackageError
 
 
-def test_save_and_loadfig(tmp_path):
-    # Create a simple figure
-    fig, ax = plt.subplots()
+def _figure() -> Figure:
+    fig, ax = plt.subplots(figsize=(5, 3), dpi=120)
     x = np.linspace(0, 10, 100)
-    y = np.sin(x)
-    ax.plot(x, y)
-    filename = tmp_path / "test.plt.pdf"
-
-    # Save the figure
-    pyplot.savefig(fig, filename)
-
-    # Load the figure
-    figs = pyplot.loadfig(filename)
-    assert isinstance(figs, list)
-    assert len(figs) == 1
-    assert hasattr(figs[0], "axes")
+    ax.plot(x, np.sin(x), "o--", label="sin", color="#123456")
+    ax.set(title="A title", xlabel="x", ylabel="y")
+    ax.text(0.25, 0.75, "axes text", transform=ax.transAxes)
+    ax.xaxis.set_major_locator(MultipleLocator(2.0, offset=0.5))
+    ax.yaxis.set_major_formatter(PercentFormatter(xmax=2.0, decimals=1))
+    ax.legend(title="Legend")
+    fig.suptitle("Figure title")
+    return fig
 
 
-def test_savefig_file_exists(tmp_path):
-    fig, ax = plt.subplots()
-    filename = tmp_path / "test_exists.plt.pdf"
-    pyplot.savefig(fig, filename)
+@pytest.mark.parametrize(
+    "filename",
+    ["figure.mpl.pdf", "figure.mpl.png", "figure.mpl.svg", "figure.ole", "figure.mplpkg"],
+)
+def test_save_and_loadfig_all_formats(tmp_path: Path, filename: str) -> None:
+    fig = _figure()
+    destination = tmp_path / filename
+
+    pyplot.savefig(fig, destination)
+    restored = pyplot.loadfig(destination)
+
+    assert isinstance(restored, Figure)
+    assert len(restored.axes) == 1
+    ax = restored.axes[0]
+    assert ax.get_title() == "A title"
+    assert ax.get_xlabel() == "x"
+    assert ax.get_ylabel() == "y"
+    assert len(ax.lines) == 1
+    np.testing.assert_allclose(ax.lines[0].get_xdata(), np.linspace(0, 10, 100))
+    np.testing.assert_allclose(ax.lines[0].get_ydata(), np.sin(np.linspace(0, 10, 100)))
+    assert ax.lines[0].get_color() == "#123456ff"
+    assert [text.get_text() for text in ax.texts] == ["axes text"]
+    assert ax.get_legend() is not None
+    assert ax.get_legend().get_title().get_text() == "Legend"
+    assert restored._suptitle is not None
+    assert restored._suptitle.get_text() == "Figure title"
+    plt.close(fig)
+    plt.close(restored)
+
+
+def test_figure_savefig_editable_keyword(tmp_path: Path) -> None:
+    fig = _figure()
+    filename = tmp_path / "figure.mpl.png"
+
+    fig.savefig(filename, editable=True)
+
+    restored = pyplot.loadfig(filename)
+    assert restored.axes[0].get_title() == "A title"
+    plt.close(fig)
+    plt.close(restored)
+
+
+def test_normal_savefig_is_unchanged(tmp_path: Path) -> None:
+    fig = _figure()
+    filename = tmp_path / "normal.png"
+
+    fig.savefig(filename)
+
+    with pytest.raises(PackageError, match="exactly one editable payload"):
+        pyplot.loadfig(filename)
+    plt.close(fig)
+
+
+@pytest.mark.parametrize("filename", ["figure.pdf", "figure.png", "figure.svg"])
+def test_editable_save_requires_mpl_compound_suffix(tmp_path: Path, filename: str) -> None:
+    fig = _figure()
+
+    with pytest.raises(ValueError, match=r"must end in \.mpl\."):
+        pyplot.savefig(fig, tmp_path / filename)
+
+    plt.close(fig)
+
+
+def test_savefig_exclusive_mode(tmp_path: Path) -> None:
+    fig = _figure()
+    filename = tmp_path / "exclusive.mpl.pdf"
+    pyplot.savefig(fig, filename, mode="x")
+
     with pytest.raises(FileExistsError):
         pyplot.savefig(fig, filename, mode="x")
+    plt.close(fig)
 
 
-def test_savefig_overwrite(tmp_path):
-    fig, ax = plt.subplots()
-    filename = tmp_path / "test_overwrite.plt.pdf"
+def test_savefig_overwrites_atomically(tmp_path: Path) -> None:
+    fig = _figure()
+    filename = tmp_path / "overwrite.mpl.pdf"
+    filename.write_bytes(b"old")
+
     pyplot.savefig(fig, filename)
-    # Overwrite should not raise
-    pyplot.savefig(fig, filename, mode="w")
+
+    assert filename.read_bytes().startswith(b"%PDF-")
+    assert pyplot.loadfig(filename).axes[0].get_title() == "A title"
+    plt.close(fig)
 
 
-def test_savefig_append(tmp_path):
-    fig, ax = plt.subplots()
-    filename = tmp_path / "test_append.plt.pdf"
-    pyplot.savefig(fig, filename)
-    # Append should not raise
-    pyplot.savefig(fig, filename, mode="a")
+def test_savefig_append_is_explicitly_unsupported(tmp_path: Path) -> None:
+    fig = _figure()
+    filename = tmp_path / "append.mpl.pdf"
+
+    with pytest.raises(ValueError, match="append is not supported"):
+        pyplot.savefig(fig, filename, mode="a")
+    plt.close(fig)
 
 
-def test_adjust_locator():
+def test_extract_editable_png_from_ole_object(tmp_path: Path) -> None:
+    fig = _figure()
+    ole_object = tmp_path / "oleObject1.bin"
+    editable_png = tmp_path / "figure.mpl.png"
+    pyplot.savefig(fig, ole_object, format="ole")
+
+    pyplot.extract_editable_png(ole_object, editable_png)
+
+    restored = pyplot.loadfig(editable_png)
+    assert restored.axes[0].get_title() == "A title"
+    assert editable_png.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
+    assert extract_payload(editable_png.read_bytes()) == extract_payload(ole_object.read_bytes())
+    plt.close(fig)
+    plt.close(restored)
+
+
+def test_extract_editable_png_is_exclusive_by_default(tmp_path: Path) -> None:
+    fig = _figure()
+    ole_object = tmp_path / "oleObject1.bin"
+    editable_png = tmp_path / "figure.mpl.png"
+    pyplot.savefig(fig, ole_object, format="ole")
+    editable_png.write_bytes(b"existing")
+
+    with pytest.raises(FileExistsError):
+        pyplot.extract_editable_png(ole_object, editable_png)
+
+    assert editable_png.read_bytes() == b"existing"
+    plt.close(fig)
+
+
+@pytest.mark.parametrize("filename", ["figure.png", "figure.mplpkg"])
+def test_extract_editable_png_rejects_non_mpl_png_destination(tmp_path: Path, filename: str) -> None:
+    fig = _figure()
+    ole_object = tmp_path / "oleObject1.bin"
+    pyplot.savefig(fig, ole_object, format="ole")
+
+    with pytest.raises(ValueError, match=r"must end in \.mpl\.png"):
+        pyplot.extract_editable_png(ole_object, tmp_path / filename)
+
+    plt.close(fig)
+
+
+def test_ole_native_png_honors_render_options(tmp_path: Path) -> None:
+    fig = _figure()
+    ole_object = tmp_path / "figure.ole"
+
+    pyplot.savefig(fig, ole_object, dpi=80)
+
+    native_png = extract_ole_native_png(ole_object.read_bytes())
+    with Image.open(BytesIO(native_png)) as image:
+        assert image.size == (400, 240)
+    plt.close(fig)
+
+
+def test_adjust_locator() -> None:
     fig, ax = plt.subplots()
     x = np.linspace(0, 10, 100)
     y = np.cos(x)
     ax.plot(x, y)
     pyplot.adjust_locator(ax)
-    # Check that major and minor locators are set
     assert hasattr(ax.xaxis, "get_major_locator")
     assert hasattr(ax.xaxis, "get_minor_locator")
+    plt.close(fig)

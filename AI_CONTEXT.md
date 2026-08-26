@@ -2,11 +2,19 @@
 
 ## Project Overview
 
-matplotlib の拡張ライブラリ。図を dill オブジェクト付きの PDF（`.plt.pdf`）として保存・読み込みする機能と、軸フォーマッティング・LaTeX ラベルユーティリティを提供する。
+matplotlib の拡張ライブラリ。data-only canonical package を埋め込んだ editable PDF・PNG・SVG・OLE の安全な保存・復元機能と、軸フォーマッティング・LaTeX ラベルユーティリティを提供する。
+
+「editable」は、保存した画像ファイルまたはOLE objectを別のPython process / consoleで`Figure`へrestoreし、Matplotlib APIで追加編集できることを意味する。PowerPoint内の編集UIは提供しない。OLEはcanonical packageの受動的なデータ容器として扱う。
+
+editable graphicsは通常形式と目視で区別できる`.mpl.png`・`.mpl.pdf`・`.mpl.svg`を使う。OLE/presentation連携のuser-facingな受け渡し形式は、Windows・Macとも通常に開ける`figure.mpl.png`へ統一する。OLEのnative file自体をこのPNGとし、raw `.bin`と`.mplpkg`は内部形式に限定する。Python側でPPTXを走査して対象objectを推測しない。汎用Packageの操作が不十分な場合は抽出専用verb/adapterを追加できるが、restore・編集・埋め込みコード実行は行わない。
+
+Macでは抽出専用PowerPoint bridgeが選択済みOLE ShapeとPowerPoint APIから得た一時PPTXコピーを使い、対応する内部OLE objectからnative editable PNGだけをローカル抽出する。ShapeとOOXML relationshipの対応はfixtureで検証し、複数objectから推測しない。bridgeはpresentationをdefaultでuploadせず、Figureをrestore・編集しない。
+
+PPTX package生成とOLE bytesの埋め込みはportable OOXML処理としてMac・Linux・Windowsで可能にし、Windows COMやPowerPointを生成要件にしない。OS依存なのはactivationとselected-object exportである。restore/parser/presentation bridgeはdenylistでなくpositive exact allowlistを原則とし、Shape type、relationship/content type、normalized target、CFB stream、native filename、container/schema tag、class/dtype等が未知・追加・曖昧なら推測せず拒否する。
 
 - **言語:** Python 3.11+
 - **パッケージマネージャ:** uv（`uv sync` / `uv add`）
-- **主要依存:** matplotlib, dill, pymupdf, pypdf, send2trash
+- **主要依存:** matplotlib, numpy, pypdf, olefile
 - **ツール:** ruff（lint/format）, mypy（型チェック）, pytest
 - **主要ディレクトリ:**
   - `matplotlib_extension/` — ライブラリ本体（pyplot.py, label_string.py, *.mplstyle）
@@ -33,6 +41,12 @@ matplotlib の拡張ライブラリ。図を dill オブジェクト付きの PD
 
 - 依存管理は uv のみ（poetry は使わない）
 - 型注釈は公開 API に必須
+- live Python object serializer、`eval` / `exec`、file-selected import/class construction は editable file の保存・読込に使用しない
+- untrusted inputのdiscriminatorはpositive exact allowlistで処理し、denylist fallbackやdynamic registry lookupを行わない。未知のserialized valueはload時に拒否し、未対応live objectはsave時にwarning付きskipまたはallowlist済みnumeric recoveryだけを行う
+- NumPy array は `allow_pickle=False`、object/structured dtype 禁止
+- 旧 object-bearing `.plt.pdf` の自動 restore は禁止
+- 旧`.plt.pdf`は通常の`loadfig()`で常に拒否する。将来の変換機能は本体と別配布のdeprecated migration toolに限定し、最初のdeserialize直前にprocessごと1回の完全一致確認を要求する。非TTYはdefault拒否、自動化は`--allow-arbitrary-code-execution`のような明示flagを必須とする。確認やsubprocessを安全境界とはみなさず、隔離環境で`.mpl.png`へ一方向変換後、通常readerで再検証する
+- format/security の正本は `docs/EDITABLE_FORMAT.md` と `SECURITY.md`
 
 ## AI Tool Assignments
 
