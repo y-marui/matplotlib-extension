@@ -90,6 +90,43 @@ After updating, paste the following prompt into your AI tool:
 Run docs/dev-charter/UPDATE_CHECKLIST.md
 ```
 
+## Lite Version
+
+`main` (this whole repository) includes a lot of software-project-specific
+content — Python dev environment, UI design, monetization policy, and so on.
+For documentation-only repositories (dotfiles collections, note archives, etc.)
+where installing the full charter is overkill, the `lite` branch carries only
+the parts that are universally valuable regardless of project type (AI context
+maintenance, task management via GitHub Issues/Projects, secrets management,
+etc.). See [scripts/lite-manifest.txt](scripts/lite-manifest.txt) for how files
+are classified.
+
+Quick Install (set `CHARTER_BRANCH=lite`):
+
+```bash
+CHARTER_BRANCH=lite bash <(curl -fsSL https://raw.githubusercontent.com/y-marui/dev-charter/main/scripts/install.sh)
+```
+
+Installing directly via git subtree:
+
+```
+git remote add dev-charter https://github.com/y-marui/dev-charter
+git fetch dev-charter
+git subtree add --prefix=docs/dev-charter dev-charter lite --squash
+```
+
+For Version Check (CI), pass `branch: lite`:
+
+```yaml
+    uses: y-marui/dev-charter/.github/workflows/check-charter.yml@main
+    with:
+      branch: lite
+```
+
+lite's `VERSION` is tracked independently from full's, and only updates when
+the included files' content actually changes (so unrelated full-side changes
+don't trigger update PRs for lite adopters).
+
 ## Makefile helper
 
 `git subtree pull` fails if the working tree has uncommitted changes, so this

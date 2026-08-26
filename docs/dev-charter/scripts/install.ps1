@@ -50,13 +50,23 @@ Write-Host "Installing dev-charter to $prefix..."
 git subtree add --prefix=$prefix $remoteName $branch --squash
 
 # 6. Success message + prompt examples
+# lite には INSTALL_CHECKLIST.md がない（full 専用ファイルのため
+# scripts/lite-manifest.txt で除外）ので、branch ごとにプロンプトを変える。
+if ($branch -eq 'main') {
+    $nextPrompt = "$prefix/INSTALL_CHECKLIST.md を実行して"
+    $nextPromptEn = "Run $prefix/INSTALL_CHECKLIST.md"
+} else {
+    $nextPrompt = "$prefix/CHARTER_INDEX.md を読み、このプロジェクトに合わせて AI_CONTEXT.md 等を構成して"
+    $nextPromptEn = "Read $prefix/CHARTER_INDEX.md and set up AI_CONTEXT.md etc. for this project"
+}
+
 Write-Host ''
 Write-Host "dev-charter installed at $prefix"
 Write-Host ''
 Write-Host 'Next - paste this prompt into your AI tool (Claude Code, Copilot, Gemini, etc.):'
 Write-Host ''
-Write-Host "  $prefix/INSTALL_CHECKLIST.md を実行して"
-Write-Host "  (English: Run $prefix/INSTALL_CHECKLIST.md)"
+Write-Host "  $nextPrompt"
+Write-Host "  (English: $nextPromptEn)"
 Write-Host ''
 
 # 7. Offer to launch Claude Code if available
@@ -65,14 +75,14 @@ if ($claude) {
     if (-not [Console]::IsInputRedirected) {
         $answer = Read-Host 'Launch Claude Code now to run the setup? [Y/n]'
         if ([string]::IsNullOrEmpty($answer) -or $answer -match '^[Yy]') {
-            & claude "$prefix/INSTALL_CHECKLIST.md を実行して"
+            & claude "$nextPrompt"
         } else {
             Write-Host ''
             Write-Host 'To start setup later, run:'
-            Write-Host "  claude ""$prefix/INSTALL_CHECKLIST.md を実行して"""
+            Write-Host "  claude ""$nextPrompt"""
         }
     } else {
         Write-Host 'Tip: launch Claude Code to start setup:'
-        Write-Host "  claude ""$prefix/INSTALL_CHECKLIST.md を実行して"""
+        Write-Host "  claude ""$nextPrompt"""
     }
 }

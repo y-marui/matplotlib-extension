@@ -49,14 +49,24 @@ echo "Installing dev-charter to $PREFIX..."
 git subtree add --prefix="$PREFIX" "$REMOTE_NAME" "$BRANCH" --squash
 
 # 6. Success message + prompt examples
+# lite には INSTALL_CHECKLIST.md がない（full 専用ファイルのため
+# scripts/lite-manifest.txt で除外）ので、branch ごとにプロンプトを変える。
+if [ "$BRANCH" = "main" ]; then
+    NEXT_PROMPT="${PREFIX}/INSTALL_CHECKLIST.md を実行して"
+    NEXT_PROMPT_EN="Run ${PREFIX}/INSTALL_CHECKLIST.md"
+else
+    NEXT_PROMPT="${PREFIX}/CHARTER_INDEX.md を読み、このプロジェクトに合わせて AI_CONTEXT.md 等を構成して"
+    NEXT_PROMPT_EN="Read ${PREFIX}/CHARTER_INDEX.md and set up AI_CONTEXT.md etc. for this project"
+fi
+
 cat <<EOF
 
 dev-charter installed at $PREFIX
 
 Next — paste this prompt into your AI tool (Claude Code, Copilot, Gemini, etc.):
 
-  $PREFIX/INSTALL_CHECKLIST.md を実行して
-  (English: Run $PREFIX/INSTALL_CHECKLIST.md)
+  $NEXT_PROMPT
+  (English: $NEXT_PROMPT_EN)
 
 EOF
 
@@ -67,15 +77,15 @@ if command -v claude > /dev/null 2>&1; then
         read -r answer
         case "${answer:-Y}" in
             [Yy]*|"")
-                exec claude "${PREFIX}/INSTALL_CHECKLIST.md を実行して"
+                exec claude "$NEXT_PROMPT"
                 ;;
             *)
                 printf "\nTo start setup later, run:\n"
-                printf "  claude \"%s/INSTALL_CHECKLIST.md を実行して\"\n" "$PREFIX"
+                printf "  claude \"%s\"\n" "$NEXT_PROMPT"
                 ;;
         esac
     else
         printf "Tip: launch Claude Code to start setup:\n"
-        printf "  claude \"%s/INSTALL_CHECKLIST.md を実行して\"\n" "$PREFIX"
+        printf "  claude \"%s\"\n" "$NEXT_PROMPT"
     fi
 fi

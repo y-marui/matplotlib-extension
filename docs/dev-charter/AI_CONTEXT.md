@@ -57,6 +57,14 @@ dev-charter の本体。他プロジェクトが `git subtree` で取り込む�
 - **新規ドキュメントを追加するとき**は正本の索引である `CHARTER_INDEX.md` を更新する
 - **憲章に追加できる原則・ルール**は複数の異なるプロジェクトに適用できるものに限る（1プロジェクト固有のルールは不可）
 - **dev-charter 全ドキュメントのセクションヘッダ**：日本語ドキュメントでも英語で記載する
+- **ブランチ運用は main + develop の2ブランチモデル**：通常の変更は `develop` 向け
+  PR として作成する。ある程度まとまったタイミングで `develop` → `main` の PR を
+  作成しマージする（main の更新頻度を抑え、採用先の `check-charter.yml` による
+  割り込みを減らすため。`check-charter.yml` は常に `main` の VERSION のみを参照
+  するため、develop 運用は採用先には一切見えない）。デフォルトブランチは `main`
+  のまま
+- **`develop` という名前は2ブランチ恒久運用の統合ブランチ専用の予約語**。単発の
+  作業ブランチには `work/`・`feat/` 等の既存プレフィックスを使う
 
 ## CI Workflows
 
@@ -64,7 +72,7 @@ dev-charter の本体。他プロジェクトが `git subtree` で取り込む�
 
 | ファイル | 目的 |
 |---|---|
-| `.github/workflows/ci.yml` | PR・main push に対して `pre-commit run --all-files` を実行し、`check-version-date` 等のフックを強制する |
+| `.github/workflows/ci.yml` | PR・main/develop push に対して `pre-commit run --all-files` を実行し、`check-version-date` 等のフックを強制する |
 | `.github/workflows/update-version.yml` | 非フォーク PR で `VERSION` が古い場合に自動更新コミットを行う（cloud/agent 対応） |
 | `.github/workflows/check-charter.yml` | 採用先プロジェクトから呼び出す再利用可能ワークフロー（dev-charter 本体の CI ではない） |
 
