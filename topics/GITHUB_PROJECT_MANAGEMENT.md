@@ -24,6 +24,7 @@
 - Issue Types（`Task` / `Bug` / `Feature` 等）で種別を分類する
 - Labels は優先度・領域等、Issue Types と重複しない軸で使う
 - 大きな Issue は Markdown 内のネストしたチェックリストではなく **Sub-issues** で分解する。親 Issue に進捗（`n/m` 完了）が自動表示される
+- 複数ステップ・Sub-issues を持つ大きな Issue を実装する場合は `epic/<name>` ブランチを作成し、作成時点で親 Issue にコメントで報告する（詳細: [PROJECT_LIFECYCLE.md](../PROJECT_LIFECYCLE.md) の Branch Strategy）
 
 ## Milestones
 
