@@ -93,6 +93,14 @@ API_KEY=your-api-key-here
 
 ## Setup Steps
 
+> **lite 版を導入している場合**：以下の手順が取り込む `.gitleaks.toml` /
+> `scripts/*.sh` / `.pre-commit-config.yaml` は `lite` ブランチには含まれない
+> （`scripts/publish-branch.sh` は full ブランチにのみこれらを同梱する）。
+> Layer 2 の自動化（pre-commit フックによるチーム強制）が必要な場合は `full`
+> 版を導入すること。lite のみを導入している場合は、本セクションの
+> 手順は実行できないため、Layer 1 の個人フックと「Manual Compliance Policy」
+> 節の手動遵守で代替する。
+
 新規リポジトリに本憲章を適用し、`.pre-commit-config.yaml` がまだ存在しない場合：
 
 ```bash
@@ -166,7 +174,19 @@ CI での実行例（GitHub Actions）：
 ```yaml
 - name: Run pre-commit
   uses: pre-commit/action@v3.0.1
+  env:
+    # powershell-lint はローカル専用の補助チェック（.pre-commit-config.yaml 参照）で
+    # マージ条件には含めない。GitHub-hosted ubuntu-latest には pwsh が同梱されて
+    # おり、ローカル用の command -v pwsh ガードが効かないため、CI では明示的に
+    # スキップする。
+    SKIP: powershell-lint
 ```
+
+上記の `ci.yml` テンプレートを使わず独自に CI を構築する場合も、`pre-commit/action` を
+呼ぶステップには必ず `SKIP: powershell-lint` を設定すること。省略すると、`.ps1` が
+1つも無いプロジェクトでも `docs/dev-charter/scripts/*.ps1`（本憲章の subtree が
+持ち込むファイル）に対して GitHub-hosted ランナー上でのみ lint が走り、ローカルでは
+再現しない CI 専用の失敗になる。
 
 ---
 
