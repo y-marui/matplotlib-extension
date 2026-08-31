@@ -1,5 +1,0 @@
-# dotfiles の git-sweep（マージ済みブランチ自動整理）向け設定。
-# main + develop の2ブランチ恒久運用であることを示す。
-# 詳細: ~/src/github.com/y-marui/dotfiles/bin/unix/git-sweep
-* git-sweep-main=develop
-* git-sweep-protected=main,develop
