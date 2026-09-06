@@ -21,6 +21,7 @@ dev = [
     "mypy>=1.0",
     "pytest>=8.0.0",
     "ruff>=0.4.0",
+    "types-olefile>=0.47.0.20260508",
 ]
 
 [build-system]
@@ -40,7 +41,6 @@ python_version = "3.11"
 strict = true
 warn_return_any = true
 warn_unused_configs = true
-ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
