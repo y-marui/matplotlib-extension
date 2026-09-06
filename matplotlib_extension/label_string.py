@@ -11,8 +11,8 @@ patterns: list[tuple[str, str]] = [
 
 class LabelString:
     """
-    A class to convert specific keywords in a string to their corresponding LaTeX representations
-    for use in matplotlib labels.
+    A class to convert specific keywords in a string to their corresponding
+    LaTeX representations for use in matplotlib labels.
 
     Example:
         LabelString("para alpha") -> "$\\parallel$ $\\alpha$"
@@ -29,7 +29,8 @@ class LabelString:
 
     def __repr__(self) -> str:
         """
-        Return the string with specific keywords replaced by their LaTeX representations.
+        Return the string with specific keywords replaced by their
+        LaTeX representations.
 
         Returns:
             str: The processed string with LaTeX representations.

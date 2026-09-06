@@ -14,7 +14,11 @@ from typing import Any, Final, cast
 import olefile
 from pypdf import PdfReader, PdfWriter
 
-from matplotlib_extension.package import MAX_PACKAGE_BYTES, PackageError, inspect_package
+from matplotlib_extension.package import (
+    MAX_PACKAGE_BYTES,
+    PackageError,
+    inspect_package,
+)
 
 PNG_SIGNATURE: Final = b"\x89PNG\r\n\x1a\n"
 PDF_SIGNATURE: Final = b"%PDF-"
@@ -125,7 +129,10 @@ def extract_pdf(data: bytes) -> bytes:
         if len(entries) != 2 or str(entries[0]) != PDF_ATTACHMENT:
             raise PackageError("PDF must contain exactly one editable payload")
         file_spec = entries[1].get_object()
-        if str(file_spec.get("/Type")) != "/Filespec" or str(file_spec.get("/F")) != PDF_ATTACHMENT:
+        if (
+            str(file_spec.get("/Type")) != "/Filespec"
+            or str(file_spec.get("/F")) != PDF_ATTACHMENT
+        ):
             raise PackageError("Invalid PDF attachment file specification")
         embedded = file_spec["/EF"]["/F"].get_object()
         if str(embedded.get("/Type")) != "/EmbeddedFile" or "/Filter" in embedded:
@@ -288,7 +295,9 @@ def embed_ole(editable_png: bytes) -> bytes:
 
     fat_count = 1
     while True:
-        required = (len(sectors) + fat_count + (sector_size // 4) - 1) // (sector_size // 4)
+        required = (len(sectors) + fat_count + (sector_size // 4) - 1) // (
+            sector_size // 4
+        )
         if required == fat_count:
             break
         fat_count = required
@@ -302,7 +311,10 @@ def embed_ole(editable_png: bytes) -> bytes:
     for sector in fat_indexes:
         fat[sector] = 0xFFFFFFFD
     fat_data = struct.pack(f"<{len(fat)}I", *fat)
-    sectors.extend(fat_data[offset : offset + sector_size] for offset in range(0, len(fat_data), sector_size))
+    sectors.extend(
+        fat_data[offset : offset + sector_size]
+        for offset in range(0, len(fat_data), sector_size)
+    )
     if len(sectors) != total_sector_count:
         raise PackageError("Internal OLE sector allocation error")
 
@@ -326,7 +338,9 @@ def embed_ole(editable_png: bytes) -> bytes:
         0xFFFFFFFE,
         0,
     )
-    header += struct.pack("<109I", *(fat_indexes + [0xFFFFFFFF] * (109 - len(fat_indexes))))
+    header += struct.pack(
+        "<109I", *(fat_indexes + [0xFFFFFFFF] * (109 - len(fat_indexes)))
+    )
     header = header.ljust(sector_size, b"\x00")
     return header + b"".join(sectors)
 
@@ -345,13 +359,17 @@ def extract_ole_native_png(data: bytes) -> bytes:
     if len(data) > MAX_OLE_BYTES:
         raise PackageError("OLE container exceeds the size limit")
     try:
-        with olefile.OleFileIO(BytesIO(data), raise_defects=olefile.DEFECT_INCORRECT) as container:
+        with olefile.OleFileIO(
+            BytesIO(data), raise_defects=olefile.DEFECT_INCORRECT
+        ) as container:
             paths = container.listdir(streams=True, storages=True)
             if paths != [[OLE_STREAM]]:
                 raise PackageError("OLE container has unexpected streams or storages")
             if container.get_size(OLE_STREAM) > MAX_EDITABLE_PNG_BYTES + 1_000_000:
                 raise PackageError("OLE native stream exceeds the size limit")
-            native = container.openstream(OLE_STREAM).read(MAX_EDITABLE_PNG_BYTES + 1_000_000)
+            native = container.openstream(OLE_STREAM).read(
+                MAX_EDITABLE_PNG_BYTES + 1_000_000
+            )
     except PackageError:
         raise
     except Exception as exc:
@@ -378,7 +396,10 @@ def extract_ole_native_png(data: bytes) -> bytes:
         raise PackageError("OLE native stream is truncated")
     editable_png_size = struct.unpack_from("<I", native, position)[0]
     position += 4
-    if editable_png_size > MAX_EDITABLE_PNG_BYTES or position + editable_png_size != len(native):
+    if (
+        editable_png_size > MAX_EDITABLE_PNG_BYTES
+        or position + editable_png_size != len(native)
+    ):
         raise PackageError("OLE native payload size is invalid")
     editable_png = native[position:]
     extract_png(editable_png)

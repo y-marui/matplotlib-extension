@@ -81,7 +81,10 @@ def _require_editable_filename(filename: Path, output_format: str) -> None:
         return
     expected_suffix = f".mpl.{output_format}"
     if not filename.name.lower().endswith(expected_suffix):
-        raise ValueError(f"editable {output_format.upper()} destination must end in {expected_suffix}")
+        raise ValueError(
+            f"editable {output_format.upper()} destination must end "
+            f"in {expected_suffix}"
+        )
 
 
 def savefig(
@@ -217,7 +220,9 @@ def install_matplotlib_savefig() -> None:
             raise TypeError("editable savefig accepts keyword arguments after filename")
         mode = kwargs.pop("mode", "w")
         title = kwargs.pop("title", "Figure")
-        return savefig(figure, filename, editable=True, mode=mode, title=title, **kwargs)
+        return savefig(
+            figure, filename, editable=True, mode=mode, title=title, **kwargs
+        )
 
     setattr(savefig_with_editable, "__matplotlib_extension_editable__", True)
     setattr(

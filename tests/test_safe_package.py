@@ -40,7 +40,9 @@ def _package_files(payload: bytes) -> dict[str, bytes]:
         return {name: archive.read(name) for name in archive.namelist()}
 
 
-def _write_package(files: dict[str, bytes], *, compression: int = zipfile.ZIP_STORED) -> bytes:
+def _write_package(
+    files: dict[str, bytes], *, compression: int = zipfile.ZIP_STORED
+) -> bytes:
     output = BytesIO()
     with zipfile.ZipFile(output, "w", compression=compression) as archive:
         for name, data in files.items():
@@ -62,7 +64,9 @@ def test_package_is_deterministic_and_data_only() -> None:
             "arrays/00000000.npy",
             "arrays/00000001.npy",
         ]
-        assert all(info.compress_type == zipfile.ZIP_STORED for info in archive.infolist())
+        assert all(
+            info.compress_type == zipfile.ZIP_STORED for info in archive.infolist()
+        )
         figure_spec = json.loads(archive.read("figure.json"))
         assert figure_spec["schema_version"] == 1
     assert inspect_package(first)["format_version"] == 1
@@ -122,7 +126,9 @@ def test_compressed_pdf_attachment_is_rejected_before_decoding(tmp_path: Path) -
     output = BytesIO()
     PdfWriter(clone_from=reader).write(output)
 
-    with pytest.raises(PackageError, match="Compressed or invalid PDF attachments are forbidden"):
+    with pytest.raises(
+        PackageError, match="Compressed or invalid PDF attachments are forbidden"
+    ):
         extract_payload(output.getvalue())
     plt.close(fig)
 
@@ -154,7 +160,9 @@ def test_object_dtype_npy_is_rejected_without_loading_objects() -> None:
             data = files[record["path"]]
             record["size"] = len(data)
             record["sha256"] = hashlib.sha256(data).hexdigest()
-    files["manifest.json"] = json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode() + b"\n"
+    files["manifest.json"] = (
+        json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode() + b"\n"
+    )
     with pytest.raises(PackageError, match="Invalid NumPy array"):
         load_package(_write_package(files))
     plt.close(fig)
@@ -184,7 +192,9 @@ def test_unknown_package_version_is_rejected() -> None:
     files = _package_files(dump_package(fig))
     manifest = json.loads(files["manifest.json"])
     manifest["format_version"] = 999
-    files["manifest.json"] = json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode() + b"\n"
+    files["manifest.json"] = (
+        json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode() + b"\n"
+    )
 
     with pytest.raises(PackageError, match="Unsupported package format or version"):
         load_package(_write_package(files))
@@ -215,7 +225,9 @@ def test_unsupported_subclass_is_warned_and_skipped() -> None:
 
     restored = load_package(payload)
     assert len(restored.axes[0].lines) == 0
-    assert inspect_package(payload)["warnings"] == ["Skipped unsupported line class CustomLine"]
+    assert inspect_package(payload)["warnings"] == [
+        "Skipped unsupported line class CustomLine"
+    ]
     plt.close(fig)
     plt.close(restored)
 
@@ -283,7 +295,9 @@ def test_restore_does_not_use_mutable_class_registries() -> None:
     original_has_axis = mscale._scale_has_axis_parameter["linear"]
     register_scale(RegistryScale)
     try:
-        with pytest.raises(PackageError, match="linear scale registry has been replaced"):
+        with pytest.raises(
+            PackageError, match="linear scale registry has been replaced"
+        ):
             load_package(payload)
     finally:
         mscale._scale_mapping["linear"] = original_scale
