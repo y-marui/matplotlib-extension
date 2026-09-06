@@ -20,7 +20,9 @@ class TestLabelString(unittest.TestCase):
 
     def test_mixed_keywords_and_text(self):
         self.assertEqual(repr(LabelString("alpha and beta")), r"$\alpha$ and $\beta$")
-        self.assertEqual(repr(LabelString("gamma is not beta")), r"$\gamma$ is not $\beta$")
+        self.assertEqual(
+            repr(LabelString("gamma is not beta")), r"$\gamma$ is not $\beta$"
+        )
 
 
 if __name__ == "__main__":

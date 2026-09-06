@@ -25,7 +25,14 @@ from matplotlib.figure import Figure
 from matplotlib.image import AxesImage
 from matplotlib.lines import Line2D
 from matplotlib.markers import MarkerStyle
-from matplotlib.scale import AsinhScale, LinearScale, LogitScale, LogScale, ScaleBase, SymmetricalLogScale
+from matplotlib.scale import (
+    AsinhScale,
+    LinearScale,
+    LogitScale,
+    LogScale,
+    ScaleBase,
+    SymmetricalLogScale,
+)
 from matplotlib.text import Text
 from matplotlib.ticker import (
     AutoLocator,
@@ -108,7 +115,9 @@ def _color(value: Any) -> str:
 
 
 def _finite_number(value: object, name: str) -> float:
-    if isinstance(value, bool) or not isinstance(value, int | float | np.integer | np.floating):
+    if isinstance(value, bool) or not isinstance(
+        value, int | float | np.integer | np.floating
+    ):
         raise PackageError(f"{name} must be a number")
     result = float(value)
     if not math.isfinite(result):
@@ -130,11 +139,17 @@ class _ArrayStore:
         if len(self.files) >= MAX_ARRAY_COUNT:
             raise PackageError("Figure contains too many numeric arrays")
         array = np.asanyarray(value)
-        if array.dtype.hasobject or array.dtype.fields is not None or array.dtype.kind not in "biufc":
+        if (
+            array.dtype.hasobject
+            or array.dtype.fields is not None
+            or array.dtype.kind not in "biufc"
+        ):
             raise PackageError(f"Unsupported array dtype: {array.dtype}")
         if array.nbytes > MAX_ARRAY_BYTES:
             raise PackageError("An individual array exceeds the size limit")
-        if array.dtype.byteorder == ">" or (array.dtype.byteorder == "=" and not np.little_endian):
+        if array.dtype.byteorder == ">" or (
+            array.dtype.byteorder == "=" and not np.little_endian
+        ):
             array = array.astype(array.dtype.newbyteorder("<"), copy=False)
         array = np.ascontiguousarray(array)
         stream = BytesIO()
@@ -186,11 +201,17 @@ def _apply_text_spec(text: Text, spec: Mapping[str, Any]) -> None:
     if not isinstance(weight, str | int | float) or isinstance(weight, bool):
         raise PackageError("fontweight is invalid")
     text.set_fontweight(weight)  # type: ignore[arg-type]
-    text.set_horizontalalignment(_enum(spec, "horizontalalignment", {"left", "center", "right"}))
+    text.set_horizontalalignment(
+        _enum(spec, "horizontalalignment", {"left", "center", "right"})
+    )
     text.set_rotation(_number(spec, "rotation", minimum=-1_000_000, maximum=1_000_000))
     text.set_usetex(False)
     text.set_verticalalignment(
-        _enum(spec, "verticalalignment", {"top", "bottom", "center", "baseline", "center_baseline"})
+        _enum(
+            spec,
+            "verticalalignment",
+            {"top", "bottom", "center", "baseline", "center_baseline"},
+        )
     )
     text.set_visible(_boolean(spec, "visible"))
     text.set_zorder(_number(spec, "zorder", minimum=-1_000_000, maximum=1_000_000))
@@ -198,7 +219,11 @@ def _apply_text_spec(text: Text, spec: Mapping[str, Any]) -> None:
 
 def _line_spec(line: Line2D, arrays: _ArrayStore) -> dict[str, Any]:
     marker = line.get_marker()
-    if not isinstance(marker, str | int) or isinstance(marker, bool) or marker not in MarkerStyle.markers:
+    if (
+        not isinstance(marker, str | int)
+        or isinstance(marker, bool)
+        or marker not in MarkerStyle.markers
+    ):
         raise PackageError("Custom marker paths are not supported")
     return {
         "alpha": line.get_alpha(),
@@ -222,7 +247,9 @@ def _line_spec(line: Line2D, arrays: _ArrayStore) -> dict[str, Any]:
     }
 
 
-def _locator_spec(locator: Any, arrays: _ArrayStore, collected: list[str]) -> dict[str, Any] | None:
+def _locator_spec(
+    locator: Any, arrays: _ArrayStore, collected: list[str]
+) -> dict[str, Any] | None:
     locator_type = type(locator)
     if locator_type is NullLocator:
         return {"type": "NullLocator"}
@@ -230,9 +257,16 @@ def _locator_spec(locator: Any, arrays: _ArrayStore, collected: list[str]) -> di
         return {"type": "AutoLocator"}
     if locator_type is AutoMinorLocator:
         ndivs = getattr(locator, "ndivs", getattr(locator, "n", None))
-        return {"ndivs": ndivs if isinstance(ndivs, int) else None, "type": "AutoMinorLocator"}
+        return {
+            "ndivs": ndivs if isinstance(ndivs, int) else None,
+            "type": "AutoMinorLocator",
+        }
     if locator_type is FixedLocator:
-        return {"locs": arrays.add(locator.locs), "nbins": locator.nbins, "type": "FixedLocator"}
+        return {
+            "locs": arrays.add(locator.locs),
+            "nbins": locator.nbins,
+            "type": "FixedLocator",
+        }
     if locator_type is MultipleLocator:
         return {
             "base": float(locator._edge.step),
@@ -242,7 +276,11 @@ def _locator_spec(locator: Any, arrays: _ArrayStore, collected: list[str]) -> di
     if locator_type is LinearLocator:
         return {"numticks": locator.numticks, "type": "LinearLocator"}
     if locator_type is IndexLocator:
-        return {"base": float(locator._base), "offset": float(locator.offset), "type": "IndexLocator"}
+        return {
+            "base": float(locator._base),
+            "offset": float(locator.offset),
+            "type": "IndexLocator",
+        }
     if locator_type is MaxNLocator:
         return {
             "integer": bool(locator._integer),
@@ -278,7 +316,10 @@ def _formatter_spec(formatter: Any, collected: list[str]) -> dict[str, Any] | No
             "use_offset": use_offset,
         }
     if formatter_type is FixedFormatter:
-        return {"seq": [str(value) for value in formatter.seq], "type": "FixedFormatter"}
+        return {
+            "seq": [str(value) for value in formatter.seq],
+            "type": "FixedFormatter",
+        }
     if formatter_type is FormatStrFormatter:
         return {"fmt": formatter.fmt, "type": "FormatStrFormatter"}
     if formatter_type is StrMethodFormatter:
@@ -307,7 +348,9 @@ def _formatter_spec(formatter: Any, collected: list[str]) -> dict[str, Any] | No
     return None
 
 
-def _axis_spec(axis: matplotlib.axis.Axis, arrays: _ArrayStore, collected: list[str]) -> dict[str, Any]:
+def _axis_spec(
+    axis: matplotlib.axis.Axis, arrays: _ArrayStore, collected: list[str]
+) -> dict[str, Any]:
     return {
         "major_formatter": _formatter_spec(axis.get_major_formatter(), collected),
         "major_locator": _locator_spec(axis.get_major_locator(), arrays, collected),
@@ -322,11 +365,16 @@ def _scale_name(axis: matplotlib.axis.Axis, collected: list[str]) -> str:
     for name, scale_type in _SCALE_TYPES.items():
         if type(scale) is scale_type:
             return name
-    _warn(f"Replaced unsupported scale class {type(scale).__name__} with LinearScale", collected)
+    _warn(
+        f"Replaced unsupported scale class {type(scale).__name__} with LinearScale",
+        collected,
+    )
     return "linear"
 
 
-def _axes_spec(ax: matplotlib.axes.Axes, arrays: _ArrayStore, collected: list[str]) -> dict[str, Any]:
+def _axes_spec(
+    ax: matplotlib.axes.Axes, arrays: _ArrayStore, collected: list[str]
+) -> dict[str, Any]:
     lines: list[dict[str, Any]] = []
     for line in ax.lines:
         if type(line) is not Line2D:
@@ -365,14 +413,23 @@ def _axes_spec(ax: matplotlib.axes.Axes, arrays: _ArrayStore, collected: list[st
                         "label": str(collection.get_label()),
                         "offsets": arrays.add(np.ma.getdata(collection.get_offsets())),
                         "sizes": arrays.add(collection.get_sizes()),
-                        "values": None if values is None else arrays.add(np.ma.getdata(values)),
+                        "values": None
+                        if values is None
+                        else arrays.add(np.ma.getdata(values)),
                     }
                 )
-                _warn("Stored raw numeric data for unsupported PathCollection; artist skipped", collected)
+                _warn(
+                    "Stored raw numeric data for unsupported PathCollection; "
+                    "artist skipped",
+                    collected,
+                )
             except (PackageError, TypeError, ValueError) as exc:
                 _warn(f"Skipped PathCollection recovery data: {exc}", collected)
         else:
-            _warn(f"Skipped unsupported collection class {type(collection).__name__}", collected)
+            _warn(
+                f"Skipped unsupported collection class {type(collection).__name__}",
+                collected,
+            )
     for image in ax.images:
         if type(image) is AxesImage:
             try:
@@ -384,12 +441,16 @@ def _axes_spec(ax: matplotlib.axes.Axes, arrays: _ArrayStore, collected: list[st
                         "artist_type": "AxesImage",
                         "data": arrays.add(np.ma.getdata(image_data)),
                         "extent": [
-                            _finite_number(value, "extent") for value in cast(Sequence[object], image.get_extent())
+                            _finite_number(value, "extent")
+                            for value in cast(Sequence[object], image.get_extent())
                         ],
                         "label": str(image.get_label()),
                     }
                 )
-                _warn("Stored raw numeric data for unsupported AxesImage; artist skipped", collected)
+                _warn(
+                    "Stored raw numeric data for unsupported AxesImage; artist skipped",
+                    collected,
+                )
             except (PackageError, TypeError, ValueError) as exc:
                 _warn(f"Skipped AxesImage recovery data: {exc}", collected)
         else:
@@ -401,7 +462,10 @@ def _axes_spec(ax: matplotlib.axes.Axes, arrays: _ArrayStore, collected: list[st
     }
     for group_name, artists in unsupported_groups.items():
         for artist in artists:
-            _warn(f"Skipped unsupported {group_name} class {type(artist).__name__}", collected)
+            _warn(
+                f"Skipped unsupported {group_name} class {type(artist).__name__}",
+                collected,
+            )
 
     legend_spec: dict[str, Any] | None = None
     legend = ax.get_legend()
@@ -447,10 +511,14 @@ def _axes_spec(ax: matplotlib.axes.Axes, arrays: _ArrayStore, collected: list[st
     }
 
 
-def figure_to_spec(figure: Figure) -> tuple[dict[str, Any], dict[str, bytes], list[str]]:
+def figure_to_spec(
+    figure: Figure,
+) -> tuple[dict[str, Any], dict[str, bytes], list[str]]:
     """Convert a Figure to a data-only specification and NumPy array files."""
     if type(figure) is not Figure:
-        raise PackageError("Only the allowlisted matplotlib.figure.Figure class is supported")
+        raise PackageError(
+            "Only the allowlisted matplotlib.figure.Figure class is supported"
+        )
     if len(figure.axes) > MAX_AXES:
         raise PackageError("Figure contains too many axes")
     arrays = _ArrayStore()
@@ -494,7 +562,9 @@ def dump_package(figure: Figure) -> bytes:
     files: dict[str, bytes] = {"figure.json": figure_data, **arrays}
     file_records = [
         {
-            "media_type": "application/json" if name.endswith(".json") else "application/x-npy",
+            "media_type": "application/json"
+            if name.endswith(".json")
+            else "application/x-npy",
             "path": name,
             "sha256": hashlib.sha256(data).hexdigest(),
             "size": len(data),
@@ -550,16 +620,26 @@ def _validated_files(payload: bytes) -> tuple[Mapping[str, Any], dict[str, bytes
             raise PackageError("Figure package contains too many files")
         for info in infos:
             name = info.filename
-            if name.startswith("/") or "\\" in name or any(part in {"", ".", ".."} for part in name.split("/")):
+            if (
+                name.startswith("/")
+                or "\\" in name
+                or any(part in {"", ".", ".."} for part in name.split("/"))
+            ):
                 raise PackageError("Unsafe package path")
             if info.file_size > MAX_ARRAY_BYTES:
                 raise PackageError("Package entry exceeds the size limit")
-            if info.compress_size != info.file_size or info.compress_type != zipfile.ZIP_STORED:
+            if (
+                info.compress_size != info.file_size
+                or info.compress_type != zipfile.ZIP_STORED
+            ):
                 raise PackageError("Compressed package entries are forbidden")
         if "manifest.json" not in names or "figure.json" not in names:
             raise PackageError("Required package files are missing")
         manifest = _read_json(archive.read("manifest.json"), "manifest.json")
-        if manifest.get("format") != PACKAGE_FORMAT or manifest.get("format_version") != PACKAGE_VERSION:
+        if (
+            manifest.get("format") != PACKAGE_FORMAT
+            or manifest.get("format_version") != PACKAGE_VERSION
+        ):
             raise PackageError("Unsupported package format or version")
         if manifest.get("figure_schema_version") != FIGURE_SCHEMA_VERSION:
             raise PackageError("Unsupported figure schema version")
@@ -574,7 +654,11 @@ def _validated_files(payload: bytes) -> tuple[Mapping[str, Any], dict[str, bytes
             path = record.get("path")
             digest = record.get("sha256")
             size = record.get("size")
-            if not isinstance(path, str) or path == "manifest.json" or path in expected_names:
+            if (
+                not isinstance(path, str)
+                or path == "manifest.json"
+                or path in expected_names
+            ):
                 raise PackageError("Invalid or duplicate manifest path")
             if not isinstance(digest, str) or len(digest) != 64:
                 raise PackageError("Invalid manifest digest")
@@ -608,7 +692,9 @@ def recover_numeric_data(payload: bytes) -> list[dict[str, Any]]:
     axes_specs = _sequence(spec.get("axes"), "axes", max_items=MAX_AXES)
     for axes_index, axes_value in enumerate(axes_specs):
         axes_spec = _mapping(axes_value, "axes")
-        records = _sequence(axes_spec.get("recovery", []), "recovery", max_items=MAX_ARTISTS_PER_AXES)
+        records = _sequence(
+            axes_spec.get("recovery", []), "recovery", max_items=MAX_ARTISTS_PER_AXES
+        )
         for record_value in records:
             record = _mapping(record_value, "recovery record")
             artist_type = _enum(record, "artist_type", {"PathCollection", "AxesImage"})
@@ -620,7 +706,11 @@ def recover_numeric_data(payload: bytes) -> list[dict[str, Any]]:
             if artist_type == "PathCollection":
                 result["offsets"] = _load_array(files, record.get("offsets"))
                 result["sizes"] = _load_array(files, record.get("sizes"))
-                result["values"] = None if record.get("values") is None else _load_array(files, record.get("values"))
+                result["values"] = (
+                    None
+                    if record.get("values") is None
+                    else _load_array(files, record.get("values"))
+                )
             else:
                 result["data"] = _load_array(files, record.get("data"))
                 result["extent"] = _number_list(record.get("extent"), "extent", 4)
@@ -635,7 +725,11 @@ def _load_array(files: Mapping[str, bytes], path: object) -> np.ndarray:
         array = np.load(BytesIO(files[path]), allow_pickle=False)
     except (OSError, ValueError, EOFError) as exc:
         raise PackageError(f"Invalid NumPy array {path}") from exc
-    if not isinstance(array, np.ndarray) or array.dtype.hasobject or array.dtype.fields is not None:
+    if (
+        not isinstance(array, np.ndarray)
+        or array.dtype.hasobject
+        or array.dtype.fields is not None
+    ):
         raise PackageError("Object or structured NumPy arrays are forbidden")
     if array.dtype.kind not in "biufc" or array.nbytes > MAX_ARRAY_BYTES:
         raise PackageError("Unsupported or oversized NumPy array")
@@ -648,7 +742,9 @@ def _mapping(value: object, name: str) -> Mapping[str, Any]:
     return value
 
 
-def _sequence(value: object, name: str, *, length: int | None = None, max_items: int | None = None) -> Sequence[Any]:
+def _sequence(
+    value: object, name: str, *, length: int | None = None, max_items: int | None = None
+) -> Sequence[Any]:
     if not isinstance(value, list):
         raise PackageError(f"{name} must be a list")
     if length is not None and len(value) != length:
@@ -679,7 +775,13 @@ def _boolean(spec: Mapping[str, Any], key: str) -> bool:
     return value
 
 
-def _number(spec: Mapping[str, Any], key: str, *, minimum: float = -1e300, maximum: float = 1e300) -> float:
+def _number(
+    spec: Mapping[str, Any],
+    key: str,
+    *,
+    minimum: float = -1e300,
+    maximum: float = 1e300,
+) -> float:
     value = _finite_number(spec.get(key), key)
     if not minimum <= value <= maximum:
         raise PackageError(f"{key} is outside the allowed range")
@@ -711,7 +813,9 @@ def _number_list(value: object, name: str, length: int) -> list[float]:
     return [_finite_number(item, name) for item in items]
 
 
-def _restore_locator(spec: object, files: Mapping[str, bytes]) -> matplotlib.ticker.Locator | None:
+def _restore_locator(
+    spec: object, files: Mapping[str, bytes]
+) -> matplotlib.ticker.Locator | None:
     if spec is None:
         return None
     item = _mapping(spec, "locator")
@@ -722,25 +826,37 @@ def _restore_locator(spec: object, files: Mapping[str, bytes]) -> matplotlib.tic
         return AutoLocator()
     if locator_type == "AutoMinorLocator":
         ndivs = item.get("ndivs")
-        if ndivs is not None and (not isinstance(ndivs, int) or isinstance(ndivs, bool) or not 1 <= ndivs <= 1000):
+        if ndivs is not None and (
+            not isinstance(ndivs, int)
+            or isinstance(ndivs, bool)
+            or not 1 <= ndivs <= 1000
+        ):
             raise PackageError("Invalid AutoMinorLocator ndivs")
         return AutoMinorLocator(ndivs)
     if locator_type == "FixedLocator":
         nbins = item.get("nbins")
-        if nbins is not None and (not isinstance(nbins, int) or isinstance(nbins, bool) or nbins < 1):
+        if nbins is not None and (
+            not isinstance(nbins, int) or isinstance(nbins, bool) or nbins < 1
+        ):
             raise PackageError("Invalid FixedLocator nbins")
         return FixedLocator(_load_array(files, item.get("locs")).tolist(), nbins=nbins)
     if locator_type == "MultipleLocator":
-        return MultipleLocator(base=_number(item, "base", minimum=1e-300), offset=_number(item, "offset"))
+        return MultipleLocator(
+            base=_number(item, "base", minimum=1e-300), offset=_number(item, "offset")
+        )
     if locator_type == "LinearLocator":
         numticks = item.get("numticks")
         if numticks is not None and (
-            not isinstance(numticks, int) or isinstance(numticks, bool) or not 0 <= numticks <= 1_000_000
+            not isinstance(numticks, int)
+            or isinstance(numticks, bool)
+            or not 0 <= numticks <= 1_000_000
         ):
             raise PackageError("Invalid LinearLocator numticks")
         return LinearLocator(numticks=numticks)
     if locator_type == "IndexLocator":
-        return IndexLocator(base=_number(item, "base", minimum=1e-300), offset=_number(item, "offset"))
+        return IndexLocator(
+            base=_number(item, "base", minimum=1e-300), offset=_number(item, "offset")
+        )
     if locator_type == "MaxNLocator":
         nbins = item.get("nbins")
         if not (nbins == "auto" or isinstance(nbins, int)) or isinstance(nbins, bool):
@@ -760,9 +876,13 @@ def _restore_locator(spec: object, files: Mapping[str, bytes]) -> matplotlib.tic
         subs_ref = item.get("subs")
         subs = None if subs_ref is None else _load_array(files, subs_ref).tolist()
         numticks = item.get("numticks")
-        if not (numticks is None or numticks == "auto" or isinstance(numticks, int)) or isinstance(numticks, bool):
+        if not (
+            numticks is None or numticks == "auto" or isinstance(numticks, int)
+        ) or isinstance(numticks, bool):
             raise PackageError("Invalid LogLocator numticks")
-        return LogLocator(base=_number(item, "base", minimum=1e-300), subs=subs, numticks=numticks)
+        return LogLocator(
+            base=_number(item, "base", minimum=1e-300), subs=subs, numticks=numticks
+        )
     raise PackageError(f"Locator is not allowlisted: {locator_type}")
 
 
@@ -774,7 +894,10 @@ def _restore_formatter(spec: object) -> matplotlib.ticker.Formatter | None:
     if formatter_type == "NullFormatter":
         return NullFormatter()
     if formatter_type == "ScalarFormatter":
-        formatter = ScalarFormatter(useOffset=item.get("use_offset", True), useMathText=_boolean(item, "use_math_text"))
+        formatter = ScalarFormatter(
+            useOffset=item.get("use_offset", True),
+            useMathText=_boolean(item, "use_math_text"),
+        )
         formatter.set_scientific(_boolean(item, "scientific"))
         limits = _number_list(item.get("powerlimits"), "powerlimits", 2)
         formatter.set_powerlimits((int(limits[0]), int(limits[1])))
@@ -788,7 +911,9 @@ def _restore_formatter(spec: object) -> matplotlib.ticker.Formatter | None:
     if formatter_type == "PercentFormatter":
         decimals = item.get("decimals")
         if decimals is not None and (
-            not isinstance(decimals, int) or isinstance(decimals, bool) or not 0 <= decimals <= 100
+            not isinstance(decimals, int)
+            or isinstance(decimals, bool)
+            or not 0 <= decimals <= 100
         ):
             raise PackageError("Invalid PercentFormatter decimals")
         return PercentFormatter(
@@ -813,7 +938,9 @@ def _restore_formatter(spec: object) -> matplotlib.ticker.Formatter | None:
     raise PackageError(f"Formatter is not allowlisted: {formatter_type}")
 
 
-def _restore_axis(axis: matplotlib.axis.Axis, spec: object, files: Mapping[str, bytes]) -> None:
+def _restore_axis(
+    axis: matplotlib.axis.Axis, spec: object, files: Mapping[str, bytes]
+) -> None:
     item = _mapping(spec, "axis")
     major_locator = _restore_locator(item.get("major_locator"), files)
     minor_locator = _restore_locator(item.get("minor_locator"), files)
@@ -830,10 +957,16 @@ def _restore_axis(axis: matplotlib.axis.Axis, spec: object, files: Mapping[str, 
     axis.set_visible(_boolean(item, "visible"))
 
 
-def _restore_line(ax: matplotlib.axes.Axes, spec: object, files: Mapping[str, bytes]) -> Line2D:
+def _restore_line(
+    ax: matplotlib.axes.Axes, spec: object, files: Mapping[str, bytes]
+) -> Line2D:
     item = _mapping(spec, "line")
     marker = item.get("marker")
-    if not isinstance(marker, str | int) or isinstance(marker, bool) or marker not in MarkerStyle.markers:
+    if (
+        not isinstance(marker, str | int)
+        or isinstance(marker, bool)
+        or marker not in MarkerStyle.markers
+    ):
         raise PackageError("Invalid line marker")
     line = Line2D(
         _load_array(files, item.get("xdata")),
@@ -843,7 +976,11 @@ def _restore_line(ax: matplotlib.axes.Axes, spec: object, files: Mapping[str, by
         color=_safe_color(item, "color"),
         dash_capstyle=_enum(item, "dash_capstyle", {"butt", "projecting", "round"}),
         dash_joinstyle=_enum(item, "dash_joinstyle", {"miter", "round", "bevel"}),
-        drawstyle=_enum(item, "drawstyle", {"default", "steps", "steps-pre", "steps-mid", "steps-post"}),
+        drawstyle=_enum(
+            item,
+            "drawstyle",
+            {"default", "steps", "steps-pre", "steps-mid", "steps-post"},
+        ),
         label=_string(item, "label", max_length=MAX_TEXT_LENGTH),
         linestyle=_string(item, "linestyle", max_length=100),  # type: ignore[arg-type]
         linewidth=_number(item, "linewidth", minimum=0, maximum=1_000_000),
@@ -874,7 +1011,9 @@ def _restore_axes(figure: Figure, spec: object, files: Mapping[str, bytes]) -> N
     rect = (position[0], position[1], position[2], position[3])
     scale_mapping = getattr(mscale, "_scale_mapping", {})
     if scale_mapping.get("linear") is not LinearScale:
-        raise PackageError("Matplotlib's built-in linear scale registry has been replaced")
+        raise PackageError(
+            "Matplotlib's built-in linear scale registry has been replaced"
+        )
     ax = Axes(
         figure,
         rect,
@@ -892,9 +1031,15 @@ def _restore_axes(figure: Figure, spec: object, files: Mapping[str, bytes]) -> N
     for text_value in texts:
         text_spec = _mapping(text_value, "text")
         transform_name = _enum(text_spec, "transform", {"data", "axes", "figure"})
-        transform = {"data": ax.transData, "axes": ax.transAxes, "figure": figure.transFigure}[transform_name]
+        transform = {
+            "data": ax.transData,
+            "axes": ax.transAxes,
+            "figure": figure.transFigure,
+        }[transform_name]
         position_value = _number_list(text_spec.get("position"), "text position", 2)
-        text = ax.text(position_value[0], position_value[1], "", transform=transform, usetex=False)
+        text = ax.text(
+            position_value[0], position_value[1], "", transform=transform, usetex=False
+        )
         _apply_text_spec(text, text_spec)
     _apply_text_spec(ax.title, _mapping(item.get("title"), "title"))
     _apply_text_spec(ax.xaxis.label, _mapping(item.get("xlabel"), "xlabel"))

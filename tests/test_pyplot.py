@@ -28,7 +28,13 @@ def _figure() -> Figure:
 
 @pytest.mark.parametrize(
     "filename",
-    ["figure.mpl.pdf", "figure.mpl.png", "figure.mpl.svg", "figure.ole", "figure.mplpkg"],
+    [
+        "figure.mpl.pdf",
+        "figure.mpl.png",
+        "figure.mpl.svg",
+        "figure.ole",
+        "figure.mplpkg",
+    ],
 )
 def test_save_and_loadfig_all_formats(tmp_path: Path, filename: str) -> None:
     fig = _figure()
@@ -80,7 +86,9 @@ def test_normal_savefig_is_unchanged(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("filename", ["figure.pdf", "figure.png", "figure.svg"])
-def test_editable_save_requires_mpl_compound_suffix(tmp_path: Path, filename: str) -> None:
+def test_editable_save_requires_mpl_compound_suffix(
+    tmp_path: Path, filename: str
+) -> None:
     fig = _figure()
 
     with pytest.raises(ValueError, match=r"must end in \.mpl\."):
@@ -131,7 +139,9 @@ def test_extract_editable_png_from_ole_object(tmp_path: Path) -> None:
     restored = pyplot.loadfig(editable_png)
     assert restored.axes[0].get_title() == "A title"
     assert editable_png.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
-    assert extract_payload(editable_png.read_bytes()) == extract_payload(ole_object.read_bytes())
+    assert extract_payload(editable_png.read_bytes()) == extract_payload(
+        ole_object.read_bytes()
+    )
     plt.close(fig)
     plt.close(restored)
 
@@ -151,7 +161,9 @@ def test_extract_editable_png_is_exclusive_by_default(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("filename", ["figure.png", "figure.mplpkg"])
-def test_extract_editable_png_rejects_non_mpl_png_destination(tmp_path: Path, filename: str) -> None:
+def test_extract_editable_png_rejects_non_mpl_png_destination(
+    tmp_path: Path, filename: str
+) -> None:
     fig = _figure()
     ole_object = tmp_path / "oleObject1.bin"
     pyplot.savefig(fig, ole_object, format="ole")
