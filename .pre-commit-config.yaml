@@ -256,4 +256,5 @@ repos:
           pwsh -NoProfile -NonInteractive -File scripts/check-powershell-lint.ps1 "$@"
           ' --
         files: '\.ps1$'
+        exclude: '^docs/dev-charter/'
         require_serial: true
